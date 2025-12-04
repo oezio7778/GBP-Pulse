@@ -2,12 +2,19 @@
 import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
-import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink, ArrowRight } from 'lucide-react';
+import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink, ArrowRight, History, Clock } from 'lucide-react';
 
 interface Props {
   context: BusinessContext;
   focusMode?: boolean;
   toggleFocusMode?: () => void;
+}
+
+interface ReviewEntry {
+  id: string;
+  original: string;
+  reply: string;
+  timestamp: number;
 }
 
 const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode }) => {
@@ -17,6 +24,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPublishGuide, setShowPublishGuide] = useState(false);
+  const [reviewHistory, setReviewHistory] = useState<ReviewEntry[]>([]);
 
   const handleGenerate = async () => {
     if (!context.name) {
@@ -29,6 +37,18 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     try {
       const result = await generateGBPContent(activeTab, context, extraDetails);
       setGeneratedContent(result);
+
+      // If generating a reply, save to history
+      if (activeTab === 'reply' && result) {
+        const newEntry: ReviewEntry = {
+          id: Date.now().toString(),
+          original: extraDetails,
+          reply: result,
+          timestamp: Date.now()
+        };
+        setReviewHistory(prev => [newEntry, ...prev]);
+      }
+
     } catch (error) {
       console.error(error);
       setGeneratedContent("Error generating content. Please try again.");
@@ -37,8 +57,8 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedContent);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -46,7 +66,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
   const handleStartPublishing = () => {
     setShowPublishGuide(true);
     // Auto-copy for convenience
-    copyToClipboard();
+    copyToClipboard(generatedContent);
   };
 
   // Smart Link logic based on active tab
@@ -138,6 +158,13 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                     Tip: Mention if it's spam, conflict of interest, or off-topic.
                 </div>
             )}
+             
+            {activeTab === 'reply' && focusMode && (
+                <div className="mt-2 text-xs text-blue-600 flex items-center bg-blue-50 p-2 rounded-lg">
+                    <History className="w-4 h-4 mr-2 flex-shrink-0" />
+                    Rapid Response Mode active. Replies are saved below.
+                </div>
+            )}
 
             <div className="mt-4">
               <button
@@ -175,7 +202,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                 <div className="flex space-x-2">
                     {generatedContent && (
                     <button 
-                        onClick={copyToClipboard}
+                        onClick={() => copyToClipboard(generatedContent)}
                         className="flex items-center space-x-1 text-xs font-medium text-slate-600 hover:text-blue-600 bg-white border border-slate-300 px-3 py-1.5 rounded-md transition-all"
                     >
                         {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -243,6 +270,35 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                  <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
                    <PenTool className="w-16 h-16 mb-4" />
                    <p>Your content will appear here</p>
+                 </div>
+               )}
+
+               {/* Review History / Rapid Response List */}
+               {activeTab === 'reply' && reviewHistory.length > 0 && (
+                 <div className="mt-8 pt-8 border-t border-slate-200">
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center">
+                        <Clock className="w-4 h-4 mr-2" />
+                        Session History ({reviewHistory.length})
+                    </h4>
+                    <div className="space-y-4">
+                        {reviewHistory.map((entry) => (
+                            <div key={entry.id} className="bg-white p-4 rounded-lg border border-slate-200 text-sm">
+                                <p className="text-slate-500 italic mb-2 line-clamp-1">"{entry.original}"</p>
+                                <div className="flex items-start gap-2">
+                                    <div className="bg-blue-50 p-2 rounded text-slate-800 flex-1">
+                                        {entry.reply}
+                                    </div>
+                                    <button 
+                                        onClick={() => copyToClipboard(entry.reply)}
+                                        className="p-2 text-slate-400 hover:text-blue-600"
+                                        title="Copy again"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                  </div>
                )}
              </div>
