@@ -1,7 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Properly fetch API key in a Vite/Vercel environment
+const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY;
+
+if (!apiKey) {
+  console.warn("API Key is missing. The app will fail to make requests.");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
 // System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
