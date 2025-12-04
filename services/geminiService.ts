@@ -1,7 +1,26 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Robust API Key Retrieval for Vite, Vercel, and Sandbox environments
+const getApiKey = () => {
+  try {
+    // 1. Check Vite/Vercel standard (import.meta.env)
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
+      return import.meta.env.VITE_API_KEY;
+    }
+    // 2. Check Sandbox/Node standard (process.env)
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      // @ts-ignore
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    console.warn("Error retrieving API key", e);
+  }
+  return '';
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 // System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
@@ -102,7 +121,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 };
 
 export const generateGBPContent = async (
-  type: 'description' | 'post' | 'reply', 
+  type: 'description' | 'post' | 'reply' | 'email' | 'review_removal', 
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
@@ -122,6 +141,24 @@ export const generateGBPContent = async (
       If the review is negative, be empathetic, take it offline, and don't get defensive. 
       If positive, thank them specifically.`;
       break;
+    case 'email':
+      specificPrompt = `Write a formal Reinstatement Request Appeal email to Google Business Profile Support.
+      Tone: Professional, Legalistic, Polite but Firm.
+      Cite specific Google Guidelines where appropriate.
+      If the user provided a Case ID, include it clearly in the subject line.`;
+      break;
+    case 'review_removal':
+      specificPrompt = `Write a formal request for review removal to be submitted to Google's content moderation team.
+      
+      User Input (The bad review and why it's fake): "${extraDetails}"
+
+      Task:
+      1. Identify which specific Google "Prohibited and Restricted Content" policy this violates (e.g. Spam and fake content, Conflict of interest, Off-topic, Profanity, Bullying).
+      2. Write a concise, objective argument explaining strictly HOW the review violates that policy.
+      3. Do not be emotional. Be factual.
+      4. Format it so the user can copy and paste it into the "Describe the issue" field in the removal tool.
+      `;
+      break;
   }
 
   const response = await ai.models.generateContent({
@@ -129,7 +166,7 @@ export const generateGBPContent = async (
     contents: `
       Context: Business "${context.name}" in "${context.industry}".
       Task: ${specificPrompt}
-      Additional Details: ${extraDetails}
+      Additional Details (User Input): ${extraDetails}
     `
   });
 
