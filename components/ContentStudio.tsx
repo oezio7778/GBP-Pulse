@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
-import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert } from 'lucide-react';
+import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
 
 interface Props {
   context: BusinessContext;
+  focusMode?: boolean;
+  toggleFocusMode?: () => void;
 }
 
-const ContentStudio: React.FC<Props> = ({ context }) => {
+const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'post' | 'reply' | 'review_removal'>('description');
   const [extraDetails, setExtraDetails] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
@@ -45,16 +47,47 @@ const ContentStudio: React.FC<Props> = ({ context }) => {
     setTimeout(() => setSimulated(false), 3000);
   };
 
+  // Smart Link logic based on active tab
+  const getSmartLink = () => {
+      if (activeTab === 'review_removal') {
+          return {
+              url: 'https://support.google.com/business/workflow/9945796',
+              label: 'Open Review Removal Tool'
+          };
+      }
+      return {
+          url: 'https://business.google.com/',
+          label: 'Launch GBP Dashboard'
+      };
+  };
+
+  const smartLink = getSmartLink();
+
   return (
     <div className="h-full flex flex-col animate-fade-in-up">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-slate-900">Content Studio</h2>
-        <p className="text-slate-600">Generate guideline-compliant content for your profile.</p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+            <h2 className={`${focusMode ? 'text-xl' : 'text-3xl'} font-bold text-slate-900`}>Content Studio</h2>
+            <p className="text-slate-600">Generate content & appeals.</p>
+        </div>
+        {toggleFocusMode && (
+            <button 
+                onClick={toggleFocusMode}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    focusMode 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                }`}
+            >
+                {focusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <span className="text-sm font-medium">{focusMode ? 'Exit Copilot' : 'Copilot Mode'}</span>
+            </button>
+        )}
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+      <div className={`flex-1 grid gap-6 min-h-0 ${focusMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12'}`}>
         {/* Tools Panel */}
-        <div className="lg:col-span-4 flex flex-col space-y-4">
+        <div className={`${focusMode ? 'col-span-1' : 'lg:col-span-4'} flex flex-col space-y-4`}>
           <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
             {[
                 { id: 'description', label: 'Bio', icon: FileText },
@@ -86,7 +119,7 @@ const ContentStudio: React.FC<Props> = ({ context }) => {
               {activeTab === 'review_removal' && "Paste the unfair review content here"}
             </label>
             <textarea
-              className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm"
+              className={`flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm ${focusMode ? 'h-32' : ''}`}
               placeholder={
                 activeTab === 'description' ? "e.g. Family owned since 1990, specializing in emergency plumbing..." :
                 activeTab === 'post' ? "e.g. Summer sale, 20% off all AC tune-ups until August..." :
@@ -123,7 +156,7 @@ const ContentStudio: React.FC<Props> = ({ context }) => {
         </div>
 
         {/* Output Panel */}
-        <div className="lg:col-span-8 flex flex-col min-h-[400px] lg:min-h-0">
+        <div className={`${focusMode ? 'col-span-1' : 'lg:col-span-8'} flex flex-col min-h-[400px] lg:min-h-0`}>
           <div className="bg-white flex-1 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden relative">
              <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
@@ -212,9 +245,19 @@ const ContentStudio: React.FC<Props> = ({ context }) => {
                )}
              </div>
 
-             {/* Action Footer for Simulation */}
-             {generatedContent && (activeTab === 'post' || activeTab === 'reply') && (
-                 <div className="p-4 bg-white border-t border-slate-200 flex justify-end">
+             {/* Action Footer for Simulation/Launch */}
+             <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center">
+                 <a 
+                    href={smartLink.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center space-x-1"
+                 >
+                     <span>{smartLink.label}</span>
+                     <ExternalLink className="w-3 h-3" />
+                 </a>
+
+                 {generatedContent && (activeTab === 'post' || activeTab === 'reply') && (
                      <button
                         onClick={handleSimulate}
                         className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium text-white transition-all ${
@@ -224,8 +267,8 @@ const ContentStudio: React.FC<Props> = ({ context }) => {
                         {simulated ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
                         <span>{simulated ? 'Posted to Google (Simulated)' : `Simulate ${activeTab === 'post' ? 'Post' : 'Reply'}`}</span>
                      </button>
-                 </div>
-             )}
+                 )}
+             </div>
           </div>
         </div>
       </div>
