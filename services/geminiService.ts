@@ -1,14 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-// Properly fetch API key in a Vite/Vercel environment
-const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY;
-
-if (!apiKey) {
-  console.warn("API Key is missing. The app will fail to make requests.");
-}
-
-const ai = new GoogleGenAI({ apiKey: apiKey || '' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
@@ -219,7 +212,7 @@ export const sendChatMessage = async (
     Name: ${context.name}
     Industry: ${context.industry}
     Reported Issue: ${context.issueDescription}
-    Detected Category:a ${context.detectedCategory || 'N/A'}
+    Detected Category: ${context.detectedCategory || 'N/A'}
     Diagnosis Analysis: ${context.analysis || 'N/A'}
     
     Use this context to provide specific, tailored advice without asking the user to repeat themselves.`;
@@ -229,8 +222,6 @@ export const sendChatMessage = async (
     model: 'gemini-2.5-flash',
     config: {
       systemInstruction: systemInstruction,
-      // Note: Removed googleSearch tool to avoid conflict with JSON schema if we add more tools later,
-      // and to keep it consistent with the other functions.
     },
     history: history
   });
