@@ -14,7 +14,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
-  const [sessionKey, setSessionKey] = useState(0); // Used to force re-render of components on reset
+  const [sessionKey, setSessionKey] = useState(0); 
+  const [focusMode, setFocusMode] = useState(false); // New state for Copilot Mode
   
   // App Global State with Persistence
   const [businessContext, setBusinessContext] = useState<BusinessContext>(() => {
@@ -44,6 +45,13 @@ const App: React.FC = () => {
     localStorage.setItem('gbp_plan', JSON.stringify(actionPlan));
   }, [actionPlan]);
 
+  // Turn off focus mode if navigating away from Writer
+  useEffect(() => {
+    if (currentView !== AppView.WRITER) {
+      setFocusMode(false);
+    }
+  }, [currentView]);
+
   const handleDiagnosisComplete = (context: BusinessContext, steps: FixStep[]) => {
     setBusinessContext(context);
     setActionPlan(steps);
@@ -61,26 +69,19 @@ const App: React.FC = () => {
   };
 
   const performReset = () => {
-    // 1. Clear Storage
     localStorage.removeItem('gbp_context');
     localStorage.removeItem('gbp_plan');
-    
-    // 2. Reset State
     setBusinessContext({ name: '', industry: '', issueDescription: '' });
     setActionPlan([]);
-    
-    // 3. Increment Session Key to force re-mount of children (clears internal forms)
     setSessionKey(prev => prev + 1);
-    
-    // 4. Navigate to Dashboard and Scroll Top
     setCurrentView(AppView.DASHBOARD);
+    setFocusMode(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const hasActiveSession = businessContext.name && actionPlan.length > 0;
 
   const renderContent = () => {
-    // We wrap content in a div with sessionKey to force full re-mount on reset
     return (
       <div key={sessionKey} className="h-full">
         {(() => {
@@ -211,7 +212,11 @@ const App: React.FC = () => {
                 goToWriter={() => setCurrentView(AppView.WRITER)}
               />;
             case AppView.WRITER:
-              return <ContentStudio context={businessContext} />;
+              return <ContentStudio 
+                context={businessContext} 
+                focusMode={focusMode} 
+                toggleFocusMode={() => setFocusMode(!focusMode)} 
+              />;
             case AppView.CREATE_WIZARD:
               return <CreateWizard />;
             case AppView.CLAIM_GUIDE:
@@ -231,9 +236,11 @@ const App: React.FC = () => {
         setView={setCurrentView}
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onReset={requestReset}
+        focusMode={focusMode}
       >
         {renderContent()}
-        <AssistantSidebar context={businessContext} />
+        {/* Hide Assistant in Focus Mode to save space */}
+        {!focusMode && <AssistantSidebar context={businessContext} />}
       </Layout>
 
       <ConfirmationModal 
