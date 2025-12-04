@@ -1,38 +1,7 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-// Safely retrieve API Key for both Node (Preview) and Vite (Production/Vercel) environments
-// without causing TypeScript compiler errors during build.
-const getApiKey = (): string => {
-  // Check for Vite/Vercel environment (import.meta.env)
-  // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
-    // @ts-ignore
-    return import.meta.env.VITE_API_KEY;
-  }
-  
-  // Check for Node/Process environment
-  try {
-    // @ts-ignore
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      // @ts-ignore
-      return process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore errors accessing process
-  }
-
-  return '';
-};
-
-const API_KEY = getApiKey();
-
-if (!API_KEY) {
-  console.warn("API Key is missing. Ensure VITE_API_KEY is set in your Vercel Environment Variables.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
