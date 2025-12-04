@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppView } from '../types';
-import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin } from 'lucide-react';
+import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, Maximize2, Minimize2 } from 'lucide-react';
 
 interface LayoutProps {
   currentView: AppView;
@@ -8,9 +8,10 @@ interface LayoutProps {
   children: React.ReactNode;
   toggleSidebar: () => void;
   onReset?: () => void;
+  focusMode?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleSidebar, onReset }) => {
+const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleSidebar, onReset, focusMode = false }) => {
   
   const navItems = [
     { id: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -23,8 +24,8 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col shadow-xl z-20">
+      {/* Sidebar - Hidden in Focus Mode */}
+      <aside className={`bg-slate-900 text-white flex-col shadow-xl z-20 transition-all duration-300 ease-in-out ${focusMode ? 'hidden w-0' : 'w-64 hidden md:flex'}`}>
         <div className="p-6 flex items-center space-x-3 border-b border-slate-800">
           <div className="p-2 bg-blue-600 rounded-lg">
             <Activity className="w-6 h-6 text-white" />
@@ -76,20 +77,22 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Mobile Header */}
-        <header className="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
-          <div className="flex items-center space-x-2">
-            <Activity className="w-6 h-6 text-blue-600" />
-            <span className="font-bold text-slate-900">GBP Pulse</span>
-          </div>
-          <button onClick={toggleSidebar} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-            <Menu className="w-6 h-6" />
-          </button>
-        </header>
+      <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300">
+        {/* Mobile Header - Hidden in Focus Mode unless mobile */}
+        {!focusMode && (
+          <header className="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
+            <div className="flex items-center space-x-2">
+              <Activity className="w-6 h-6 text-blue-600" />
+              <span className="font-bold text-slate-900">GBP Pulse</span>
+            </div>
+            <button onClick={toggleSidebar} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+              <Menu className="w-6 h-6" />
+            </button>
+          </header>
+        )}
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
-          <div className="max-w-5xl mx-auto h-full">
+        <div className={`flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth ${focusMode ? 'bg-slate-100' : ''}`}>
+          <div className={`mx-auto h-full transition-all duration-300 ${focusMode ? 'max-w-2xl' : 'max-w-5xl'}`}>
             {children}
           </div>
         </div>
