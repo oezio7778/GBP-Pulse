@@ -1,26 +1,8 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-// Robust API Key Retrieval for Vite, Vercel, and Sandbox environments
-const getApiKey = () => {
-  try {
-    // 1. Check Vite/Vercel standard (import.meta.env)
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
-      return import.meta.env.VITE_API_KEY;
-    }
-    // 2. Check Sandbox/Node standard (process.env)
-    // @ts-ignore
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      // @ts-ignore
-      return process.env.API_KEY;
-    }
-  } catch (e) {
-    console.warn("Error retrieving API key", e);
-  }
-  return '';
-};
-
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
