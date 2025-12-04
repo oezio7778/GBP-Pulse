@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, BusinessContext } from '../types';
 import { sendChatMessage } from '../services/geminiService';
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, Send, Bot, Minimize2 } from 'lucide-react';
 
 interface Props {
   context?: BusinessContext;
