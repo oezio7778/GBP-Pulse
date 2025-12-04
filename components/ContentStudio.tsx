@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
-import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
+import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink, ArrowRight } from 'lucide-react';
 
 interface Props {
   context: BusinessContext;
@@ -15,7 +16,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
   const [generatedContent, setGeneratedContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [simulated, setSimulated] = useState(false);
+  const [showPublishGuide, setShowPublishGuide] = useState(false);
 
   const handleGenerate = async () => {
     if (!context.name) {
@@ -24,7 +25,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     }
     setLoading(true);
     setCopied(false);
-    setSimulated(false);
+    setShowPublishGuide(false);
     try {
       const result = await generateGBPContent(activeTab, context, extraDetails);
       setGeneratedContent(result);
@@ -42,9 +43,10 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSimulate = () => {
-    setSimulated(true);
-    setTimeout(() => setSimulated(false), 3000);
+  const handleStartPublishing = () => {
+    setShowPublishGuide(true);
+    // Auto-copy for convenience
+    copyToClipboard();
   };
 
   // Smart Link logic based on active tab
@@ -99,7 +101,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                 return (
                     <button
                         key={tool.id}
-                        onClick={() => { setActiveTab(tool.id as any); setGeneratedContent(''); setSimulated(false); }}
+                        onClick={() => { setActiveTab(tool.id as any); setGeneratedContent(''); setShowPublishGuide(false); }}
                         className={`py-2 px-1 rounded-lg text-xs font-medium flex flex-col items-center justify-center space-y-1 transition-all ${
                         activeTab === tool.id ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -246,28 +248,60 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
              </div>
 
              {/* Action Footer for Simulation/Launch */}
-             <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center">
-                 <a 
-                    href={smartLink.url} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center space-x-1"
-                 >
-                     <span>{smartLink.label}</span>
-                     <ExternalLink className="w-3 h-3" />
-                 </a>
+             <div className="p-4 bg-white border-t border-slate-200">
+                {!showPublishGuide ? (
+                     <div className="flex justify-between items-center">
+                        <a 
+                            href={smartLink.url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center space-x-1"
+                        >
+                            <span>{smartLink.label}</span>
+                            <ExternalLink className="w-3 h-3" />
+                        </a>
 
-                 {generatedContent && (activeTab === 'post' || activeTab === 'reply') && (
-                     <button
-                        onClick={handleSimulate}
-                        className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium text-white transition-all ${
-                            simulated ? 'bg-green-600' : 'bg-slate-900 hover:bg-slate-800'
-                        }`}
-                     >
-                        {simulated ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                        <span>{simulated ? 'Posted to Google (Simulated)' : `Simulate ${activeTab === 'post' ? 'Post' : 'Reply'}`}</span>
-                     </button>
-                 )}
+                        {generatedContent && (
+                            <button
+                                onClick={handleStartPublishing}
+                                className="flex items-center space-x-2 px-6 py-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/20"
+                            >
+                                <Send className="w-4 h-4" />
+                                <span>Start Publishing</span>
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 animate-scale-in">
+                        <div className="flex justify-between items-start mb-2">
+                             <h4 className="font-bold text-blue-900 text-sm">Follow these steps to publish on Google:</h4>
+                             <button onClick={() => setShowPublishGuide(false)} className="text-blue-400 hover:text-blue-600"><Minimize2 className="w-4 h-4" /></button>
+                        </div>
+                        <ol className="space-y-2 text-sm text-blue-800 mb-4">
+                            <li className="flex items-center gap-2">
+                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">1</span>
+                                <span>We just copied the text for you.</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">2</span>
+                                <span>Click the button below to open Google.</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">3</span>
+                                <span>Select <strong>"{activeTab === 'post' ? 'Add Update' : activeTab === 'reply' ? 'Reply' : 'Describe Issue'}"</strong> and paste (Ctrl+V).</span>
+                            </li>
+                        </ol>
+                        <a 
+                            href={smartLink.url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-blue-700 transition-colors"
+                        >
+                            <span>Open Google & Paste</span>
+                            <ExternalLink className="w-4 h-4" />
+                        </a>
+                    </div>
+                )}
              </div>
           </div>
         </div>
