@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import DiagnosticWizard from './components/DiagnosticWizard';
@@ -237,6 +238,7 @@ const App: React.FC = () => {
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onReset={requestReset}
         focusMode={focusMode}
+        businessName={businessContext.name}
       >
         {renderContent()}
         {/* Hide Assistant in Focus Mode to save space */}
