@@ -2,11 +2,34 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-// Support both standard process.env (Node/Preview) and Vite (Vercel/Production)
-const API_KEY = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
+// Safely retrieve API Key for both Node (Preview) and Vite (Production/Vercel) environments
+// without causing TypeScript compiler errors during build.
+const getApiKey = (): string => {
+  // Check for Vite/Vercel environment (import.meta.env)
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
+    // @ts-ignore
+    return import.meta.env.VITE_API_KEY;
+  }
+  
+  // Check for Node/Process environment
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      // @ts-ignore
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    // Ignore errors accessing process
+  }
+
+  return '';
+};
+
+const API_KEY = getApiKey();
 
 if (!API_KEY) {
-  console.error("API Key is missing. Please set VITE_API_KEY in your environment variables.");
+  console.warn("API Key is missing. Ensure VITE_API_KEY is set in your Vercel Environment Variables.");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -220,7 +243,7 @@ export const sendChatMessage = async (
     Name: ${context.name}
     Industry: ${context.industry}
     Reported Issue: ${context.issueDescription}
-    Detected Category: ${context.detectedCategory || 'N/A'}
+    Detected Category:a ${context.detectedCategory || 'N/A'}
     Diagnosis Analysis: ${context.analysis || 'N/A'}
     
     Use this context to provide specific, tailored advice without asking the user to repeat themselves.`;
