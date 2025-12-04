@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Search, ShieldCheck, UserX, AlertTriangle, ArrowRight, ExternalLink, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Search, ShieldCheck, UserX, ArrowRight, ExternalLink, HelpCircle } from 'lucide-react';
 
 const ClaimGuide: React.FC = () => {
   const [scenario, setScenario] = useState<'UNCLAIMED' | 'OWNED' | 'MISSING' | null>(null);
