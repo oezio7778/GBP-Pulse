@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
