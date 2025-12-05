@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
-import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink, ArrowRight, History, Clock } from 'lucide-react';
+import { PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
 
 interface Props {
   context: BusinessContext;
   focusMode?: boolean;
   toggleFocusMode?: () => void;
-}
-
-interface ReviewEntry {
-  id: string;
-  original: string;
-  reply: string;
-  timestamp: number;
 }
 
 const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode }) => {
@@ -22,8 +15,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
   const [generatedContent, setGeneratedContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showPublishGuide, setShowPublishGuide] = useState(false);
-  const [reviewHistory, setReviewHistory] = useState<ReviewEntry[]>([]);
+  const [simulated, setSimulated] = useState(false);
 
   const handleGenerate = async () => {
     if (!context.name) {
@@ -32,22 +24,10 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     }
     setLoading(true);
     setCopied(false);
-    setShowPublishGuide(false);
+    setSimulated(false);
     try {
       const result = await generateGBPContent(activeTab, context, extraDetails);
       setGeneratedContent(result);
-
-      // If generating a reply, save to history
-      if (activeTab === 'reply' && result) {
-        const newEntry: ReviewEntry = {
-          id: Date.now().toString(),
-          original: extraDetails,
-          reply: result,
-          timestamp: Date.now()
-        };
-        setReviewHistory(prev => [newEntry, ...prev]);
-      }
-
     } catch (error) {
       console.error(error);
       setGeneratedContent("Error generating content. Please try again.");
@@ -56,16 +36,15 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleStartPublishing = () => {
-    setShowPublishGuide(true);
-    // Auto-copy for convenience
-    copyToClipboard(generatedContent);
+  const handleSimulate = () => {
+    setSimulated(true);
+    setTimeout(() => setSimulated(false), 3000);
   };
 
   // Smart Link logic based on active tab
@@ -120,7 +99,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                 return (
                     <button
                         key={tool.id}
-                        onClick={() => { setActiveTab(tool.id as any); setGeneratedContent(''); setShowPublishGuide(false); }}
+                        onClick={() => { setActiveTab(tool.id as any); setGeneratedContent(''); setSimulated(false); }}
                         className={`py-2 px-1 rounded-lg text-xs font-medium flex flex-col items-center justify-center space-y-1 transition-all ${
                         activeTab === tool.id ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -155,13 +134,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                 <div className="mt-2 text-xs text-amber-600 flex items-center bg-amber-50 p-2 rounded-lg">
                     <ShieldAlert className="w-4 h-4 mr-2 flex-shrink-0" />
                     Tip: Mention if it's spam, conflict of interest, or off-topic.
-                </div>
-            )}
-             
-            {activeTab === 'reply' && focusMode && (
-                <div className="mt-2 text-xs text-blue-600 flex items-center bg-blue-50 p-2 rounded-lg">
-                    <History className="w-4 h-4 mr-2 flex-shrink-0" />
-                    Rapid Response Mode active. Replies are saved below.
                 </div>
             )}
 
@@ -201,7 +173,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                 <div className="flex space-x-2">
                     {generatedContent && (
                     <button 
-                        onClick={() => copyToClipboard(generatedContent)}
+                        onClick={copyToClipboard}
                         className="flex items-center space-x-1 text-xs font-medium text-slate-600 hover:text-blue-600 bg-white border border-slate-300 px-3 py-1.5 rounded-md transition-all"
                     >
                         {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -271,92 +243,31 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode })
                    <p>Your content will appear here</p>
                  </div>
                )}
-
-               {/* Review History / Rapid Response List */}
-               {activeTab === 'reply' && reviewHistory.length > 0 && (
-                 <div className="mt-8 pt-8 border-t border-slate-200">
-                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        Session History ({reviewHistory.length})
-                    </h4>
-                    <div className="space-y-4">
-                        {reviewHistory.map((entry) => (
-                            <div key={entry.id} className="bg-white p-4 rounded-lg border border-slate-200 text-sm">
-                                <p className="text-slate-500 italic mb-2 line-clamp-1">"{entry.original}"</p>
-                                <div className="flex items-start gap-2">
-                                    <div className="bg-blue-50 p-2 rounded text-slate-800 flex-1">
-                                        {entry.reply}
-                                    </div>
-                                    <button 
-                                        onClick={() => copyToClipboard(entry.reply)}
-                                        className="p-2 text-slate-400 hover:text-blue-600"
-                                        title="Copy again"
-                                    >
-                                        <Copy className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                 </div>
-               )}
              </div>
 
              {/* Action Footer for Simulation/Launch */}
-             <div className="p-4 bg-white border-t border-slate-200">
-                {!showPublishGuide ? (
-                     <div className="flex justify-between items-center">
-                        <a 
-                            href={smartLink.url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center space-x-1"
-                        >
-                            <span>{smartLink.label}</span>
-                            <ExternalLink className="w-3 h-3" />
-                        </a>
+             <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center">
+                 <a 
+                    href={smartLink.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center space-x-1"
+                 >
+                     <span>{smartLink.label}</span>
+                     <ExternalLink className="w-3 h-3" />
+                 </a>
 
-                        {generatedContent && (
-                            <button
-                                onClick={handleStartPublishing}
-                                className="flex items-center space-x-2 px-6 py-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/20"
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>Start Publishing</span>
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 animate-scale-in">
-                        <div className="flex justify-between items-start mb-2">
-                             <h4 className="font-bold text-blue-900 text-sm">Follow these steps to publish on Google:</h4>
-                             <button onClick={() => setShowPublishGuide(false)} className="text-blue-400 hover:text-blue-600"><Minimize2 className="w-4 h-4" /></button>
-                        </div>
-                        <ol className="space-y-2 text-sm text-blue-800 mb-4">
-                            <li className="flex items-center gap-2">
-                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">1</span>
-                                <span>We just copied the text for you.</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">2</span>
-                                <span>Click the button below to open Google.</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="bg-blue-200 text-blue-700 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold">3</span>
-                                <span>Select <strong>"{activeTab === 'post' ? 'Add Update' : activeTab === 'reply' ? 'Reply' : 'Describe Issue'}"</strong> and paste (Ctrl+V).</span>
-                            </li>
-                        </ol>
-                        <a 
-                            href={smartLink.url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-blue-700 transition-colors"
-                        >
-                            <span>Open Google & Paste</span>
-                            <ExternalLink className="w-4 h-4" />
-                        </a>
-                    </div>
-                )}
+                 {generatedContent && (activeTab === 'post' || activeTab === 'reply') && (
+                     <button
+                        onClick={handleSimulate}
+                        className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium text-white transition-all ${
+                            simulated ? 'bg-green-600' : 'bg-slate-900 hover:bg-slate-800'
+                        }`}
+                     >
+                        {simulated ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                        <span>{simulated ? 'Posted to Google (Simulated)' : `Simulate ${activeTab === 'post' ? 'Post' : 'Reply'}`}</span>
+                     </button>
+                 )}
              </div>
           </div>
         </div>
