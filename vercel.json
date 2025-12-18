@@ -1,9 +1,9 @@
 {
-  "redirects": [
+  "routes": [
     {
-      "source": "/",
-      "destination": "/business-reviews",
-      "permanent": true
+      "src": "^/$",
+      "status": 308,
+      "headers": { "Location": "/business-reviews" }
     }
   ]
 }
