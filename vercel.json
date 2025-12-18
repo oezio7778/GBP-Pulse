@@ -1,9 +1,11 @@
 {
   "routes": [
     {
-      "src": "^/$",
+      "src": "^/business-reviews/?$",
       "status": 308,
-      "headers": { "Location": "/business-reviews" }
+      "headers": {
+        "Location": "/"
+      }
     }
   ]
 }
