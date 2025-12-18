@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/business-reviews",
+      "permanent": true
+    }
+  ]
+}
