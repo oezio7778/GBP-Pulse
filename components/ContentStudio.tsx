@@ -8,7 +8,6 @@ import {
   ExternalLink, MessageCircleQuestion, 
   Image, Users, Trash2, BookOpen, Settings,
   AlertCircle,
-  // Added missing Bot icon import
   Bot
 } from 'lucide-react';
 
@@ -35,6 +34,13 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   const [copied, setCopied] = useState(false);
   const [showPublishGuide, setShowPublishGuide] = useState(false);
 
+  // AUTO-TRIGGER SETUP: If we land here without a business name, immediately trigger the modal.
+  useEffect(() => {
+    if (!context.name && onSwitchBusiness) {
+      onSwitchBusiness();
+    }
+  }, [context.name, onSwitchBusiness]);
+
   const currentInput = tabInputs[activeTab];
   const currentOutput = tabOutputs[activeTab];
 
@@ -47,7 +53,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   };
 
   const handleGenerate = async () => {
-    // Safety check - though UI should prevent this state
     if (!context.name) {
       if (onSwitchBusiness) onSwitchBusiness();
       return;
@@ -112,7 +117,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
 
   const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
 
-  // If no business name is set, show a full-screen block inside the studio
   if (!context.name) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center animate-fade-in">
@@ -157,7 +161,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
       </div>
 
       <div className={`flex-1 grid gap-6 min-h-0 ${focusMode ? 'grid-cols-1' : 'lg:grid-cols-12'}`}>
-        {/* Input Controls */}
         <div className={`${focusMode ? '' : 'lg:col-span-4'} flex flex-col space-y-4`}>
           <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
             {navTools.map((tool) => (
@@ -194,7 +197,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
           </div>
         </div>
 
-        {/* Output Preview */}
         <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
           <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">PREVIEW & EXPORT</span>
@@ -273,7 +275,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
             )}
           </div>
 
-          {/* Persistent Footer Link */}
           <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
              <a 
               href="https://business.google.com/" 
