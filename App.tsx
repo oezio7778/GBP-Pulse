@@ -45,15 +45,11 @@ const App: React.FC = () => {
     localStorage.setItem('gbp_plan', JSON.stringify(actionPlan));
   }, [actionPlan]);
 
-  // Force business setup if entering the studio without a name
   useEffect(() => {
-    if (currentView === AppView.WRITER && !businessContext.name?.trim()) {
-      setShowQuickStartModal(true);
-    }
     if (currentView !== AppView.WRITER) {
       setFocusMode(false);
     }
-  }, [currentView, businessContext.name]);
+  }, [currentView]);
 
   const handleDiagnosisComplete = (context: BusinessContext, steps: FixStep[]) => {
     setBusinessContext(context);
@@ -62,9 +58,8 @@ const App: React.FC = () => {
   };
 
   const handleQuickStart = (name: string, industry: string) => {
-    setBusinessContext(prev => ({ ...prev, name, industry }));
+    setBusinessContext(prev => ({ ...prev, name: name.trim(), industry: industry.trim() }));
     setShowQuickStartModal(false);
-    // Navigation is handled by the state change/view logic
   };
 
   const toggleStep = (id: string) => {
@@ -97,11 +92,11 @@ const App: React.FC = () => {
   };
 
   const handleUpdateBusiness = (name: string, industry: string) => {
-    setBusinessContext(prev => ({ ...prev, name, industry }));
+    setBusinessContext(prev => ({ ...prev, name: name.trim(), industry: industry.trim() }));
   };
 
-  const hasActiveSession = !!(businessContext.name?.trim()) && actionPlan.length > 0;
-  const hasIdentitySet = !!(businessContext.name?.trim());
+  const hasIdentitySet = !!(businessContext.name && businessContext.name.trim() !== '');
+  const hasActiveSession = hasIdentitySet && actionPlan.length > 0;
 
   const renderContent = () => {
     switch (currentView) {
@@ -125,19 +120,18 @@ const App: React.FC = () => {
             </div>
 
             {!hasIdentitySet && (
-               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex items-start gap-4 shadow-sm">
+               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex items-start gap-4 shadow-sm border-l-4 border-l-amber-500">
                   <div className="p-3 bg-amber-100 rounded-2xl flex-shrink-0">
                     <AlertCircle className="w-6 h-6 text-amber-600" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-amber-900">Incomplete Profile</h3>
-                    <p className="text-amber-700 text-sm mb-4">You must set your business name and industry to use the full diagnostic tools and content studio.</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-amber-900 text-lg">Identity Required</h3>
+                    <p className="text-amber-700 text-sm mb-4">Set your business name and industry to unlock the AI Diagnostic tools and Content Studio.</p>
                     <button 
                       onClick={() => setShowQuickStartModal(true)}
-                      className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
                     >
-                      <PenTool className="w-3.5 h-3.5" />
-                      Configure Identity Now
+                      Configure Business Identity Now
                     </button>
                   </div>
                </div>
