@@ -32,15 +32,15 @@ const ContentStudio: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<TabType>('description');
   
   // Local state for the inline setup form
-  const [setupName, setSetupName] = useState(context.name || '');
-  const [setupIndustry, setSetupIndustry] = useState(context.industry || '');
+  const [setupName, setSetupName] = useState(context?.name || '');
+  const [setupIndustry, setSetupIndustry] = useState(context?.industry || '');
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Synchronize local form state when the global context updates
   useEffect(() => {
-    setSetupName(context.name || '');
-    setSetupIndustry(context.industry || '');
-  }, [context.name, context.industry]);
+    setSetupName(context?.name || '');
+    setSetupIndustry(context?.industry || '');
+  }, [context?.name, context?.industry]);
 
   const [tabInputs, setTabInputs] = useState<Record<TabType, string>>({
     description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: '', challenge: ''
@@ -66,8 +66,8 @@ const ContentStudio: React.FC<Props> = ({
   };
 
   const handleGenerate = async () => {
-    if (!context.name || context.name.trim() === '') {
-      setLocalError("Business Name is required. Please set your identity using the form provided.");
+    if (!context?.name || context.name.trim() === '') {
+      setLocalError("Business Name is required. Use the setup form to proceed.");
       return;
     }
 
@@ -138,9 +138,9 @@ const ContentStudio: React.FC<Props> = ({
 
   const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
 
-  const isBusinessNameEmpty = !context.name || context.name.trim() === '';
+  const isBusinessNameEmpty = !context?.name || context.name.trim() === '';
 
-  // CRITICAL: Render onboarding form if business identity is missing
+  // CRITICAL UI: If business identity is missing, force the setup form
   if (isBusinessNameEmpty) {
     return (
       <div className="h-full flex flex-col items-center justify-center animate-fade-in-up py-12">
@@ -150,7 +150,7 @@ const ContentStudio: React.FC<Props> = ({
           </div>
           <h2 className="text-3xl font-bold text-slate-900 mb-2">Initialize Content Studio</h2>
           <p className="text-slate-600 mb-8 leading-relaxed">
-            The Content Studio needs your business identity to craft guideline-compliant posts and profile descriptions.
+            The Content Studio requires a business identity to craft guideline-compliant posts and profile descriptions.
           </p>
           
           <form onSubmit={handleInlineSetupSubmit} className="space-y-4 text-left">
