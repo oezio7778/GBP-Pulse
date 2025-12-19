@@ -104,7 +104,7 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
           <div>
             <h3 className="font-bold text-sm">GBP Assistant</h3>
             <p className="text-xs text-slate-400">
-                {context?.name ? `Helping: ${context.name}` : 'Powered by Gemini 2.5'}
+                {context?.name ? `Helping: ${context.name}` : 'Powered by Gemini 3'}
             </p>
           </div>
         </div>

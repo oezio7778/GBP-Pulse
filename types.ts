@@ -11,7 +11,7 @@ export enum AppView {
 export interface BusinessContext {
   name: string;
   industry: string;
-  issueDescription: string;
+  issueDescription?: string; // Made optional
   detectedCategory?: 'SUSPENSION' | 'VERIFICATION' | 'RANKING' | 'REVIEWS' | 'OTHER';
   analysis?: string;
 }
@@ -25,10 +25,10 @@ export interface FixStep {
 
 export interface StepGuide {
   title: string;
-  bigPicture: string; // "Why this matters / The Context"
-  steps: string[]; // Detailed breakdown
-  pitfalls: string[]; // "What to avoid"
-  proTips: string[]; // Expert advice
+  bigPicture: string; 
+  steps: string[]; 
+  pitfalls: string[]; 
+  proTips: string[]; 
 }
 
 export interface ChatMessage {
@@ -50,7 +50,7 @@ export interface NewProfileData {
   businessName: string;
   category: string;
   isServiceArea: boolean;
-  address: string; // Or city/state for service area
+  address: string; 
   phone: string;
   website: string;
   description: string;
@@ -62,7 +62,7 @@ export interface ValidationResult {
   optimizedDescription?: string;
   suggestions?: string[];
   verificationAdvice?: {
-    method: string; // e.g. "Likely Video Verification"
-    tips: string[]; // e.g. ["Have street sign ready", "Unlock vehicle"]
+    method: string; 
+    tips: string[]; 
   };
 }

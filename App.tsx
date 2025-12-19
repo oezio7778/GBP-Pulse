@@ -7,6 +7,7 @@ import AssistantSidebar from './components/AssistantSidebar';
 import CreateWizard from './components/CreateWizard';
 import ClaimGuide from './components/ClaimGuide';
 import ConfirmationModal from './components/ConfirmationModal';
+import QuickStartModal from './components/QuickStartModal';
 import { AppView, BusinessContext, FixStep } from './types';
 import { ArrowRight, RotateCcw, Play, PlusCircle, PenTool, MapPin } from 'lucide-react';
 
@@ -14,10 +15,10 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showQuickStartModal, setShowQuickStartModal] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); 
-  const [focusMode, setFocusMode] = useState(false); // New state for Copilot Mode
+  const [focusMode, setFocusMode] = useState(false); 
   
-  // App Global State with Persistence
   const [businessContext, setBusinessContext] = useState<BusinessContext>(() => {
     try {
       const saved = localStorage.getItem('gbp_context');
@@ -36,7 +37,6 @@ const App: React.FC = () => {
     }
   });
 
-  // Auto-save effects
   useEffect(() => {
     localStorage.setItem('gbp_context', JSON.stringify(businessContext));
   }, [businessContext]);
@@ -45,7 +45,6 @@ const App: React.FC = () => {
     localStorage.setItem('gbp_plan', JSON.stringify(actionPlan));
   }, [actionPlan]);
 
-  // Turn off focus mode if navigating away from Writer
   useEffect(() => {
     if (currentView !== AppView.WRITER) {
       setFocusMode(false);
@@ -56,6 +55,12 @@ const App: React.FC = () => {
     setBusinessContext(context);
     setActionPlan(steps);
     setCurrentView(AppView.PLAN);
+  };
+
+  const handleQuickStart = (name: string, industry: string) => {
+    setBusinessContext({ name, industry, issueDescription: '' }); // Optional description
+    setShowQuickStartModal(false);
+    setCurrentView(AppView.WRITER);
   };
 
   const toggleStep = (id: string) => {
@@ -79,6 +84,19 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleOpenStudio = () => {
+    if (businessContext.name) {
+      setCurrentView(AppView.WRITER);
+    } else {
+      setShowQuickStartModal(true);
+    }
+  };
+
+  const handleSwitchBusiness = () => {
+      setBusinessContext({ name: '', industry: '', issueDescription: '' });
+      setShowQuickStartModal(true);
+  };
+
   const hasActiveSession = businessContext.name && actionPlan.length > 0;
 
   const renderContent = () => {
@@ -90,15 +108,13 @@ const App: React.FC = () => {
               return (
                 <div className="space-y-8 animate-fade-in-up">
                   <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-slate-900 mb-2">Welcome to GBP Pulse</h1>
+                    <h1 className="text-4xl font-bold text-slate-900 mb-2">Welcome to Google Business Profile (GBP) Pulse</h1>
                     <p className="text-xl text-slate-600">What would you like to achieve today?</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Fix Profile Card */}
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50 group-hover:scale-110 transition-transform"></div>
-                      
                       <div className="relative z-10 flex flex-col h-full">
                         <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                           <RotateCcw className="w-6 h-6" />
@@ -107,7 +123,6 @@ const App: React.FC = () => {
                         <p className="text-slate-600 mb-8 flex-1 text-sm">
                           Diagnose suspensions, solve verification issues, and get a recovery plan.
                         </p>
-                        
                         {hasActiveSession ? (
                           <div className="space-y-3">
                             <button 
@@ -136,10 +151,8 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Claim Profile Card */}
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50 group-hover:scale-110 transition-transform"></div>
-                      
                       <div className="relative z-10 flex flex-col h-full">
                         <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 mb-6">
                           <MapPin className="w-6 h-6" />
@@ -148,7 +161,6 @@ const App: React.FC = () => {
                         <p className="text-slate-600 mb-8 flex-1 text-sm">
                           Find out how to claim a business that is new, or currently owned by someone else.
                         </p>
-                        
                         <button 
                           onClick={() => setCurrentView(AppView.CLAIM_GUIDE)}
                           className="w-full bg-white border-2 border-amber-500 text-amber-600 hover:bg-amber-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
@@ -159,19 +171,16 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Create Profile Card */}
                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 shadow-xl text-white hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl group-hover:opacity-10 transition-opacity"></div>
-                      
                       <div className="relative z-10 flex flex-col h-full">
                           <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-6 backdrop-blur-sm">
                             <PlusCircle className="w-6 h-6" />
                           </div>
                           <h2 className="text-2xl font-bold mb-3">Create New</h2>
                           <p className="text-slate-300 mb-8 flex-1 text-sm">
-                            Build a perfect profile from scratch. AI audits your data for compliance before you submit.
+                            Build a perfect profile from scratch. AI audits your data for compliance.
                           </p>
-                          
                           <button 
                             onClick={() => setCurrentView(AppView.CREATE_WIZARD)}
                             className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
@@ -190,10 +199,10 @@ const App: React.FC = () => {
                       </div>
                       <div>
                           <h3 className="font-bold text-slate-900">Need content only?</h3>
-                          <p className="text-slate-600 text-sm">Jump straight to the Content Studio to write posts, bios, and replies.</p>
+                          <p className="text-slate-600 text-sm">Jump straight to the Content Studio.</p>
                       </div>
                       <button 
-                          onClick={() => setCurrentView(AppView.WRITER)}
+                          onClick={handleOpenStudio}
                           className="ml-auto px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                       >
                           Open Studio
@@ -215,7 +224,8 @@ const App: React.FC = () => {
               return <ContentStudio 
                 context={businessContext} 
                 focusMode={focusMode} 
-                toggleFocusMode={() => setFocusMode(!focusMode)} 
+                toggleFocusMode={() => setFocusMode(!focusMode)}
+                onSwitchBusiness={handleSwitchBusiness} 
               />;
             case AppView.CREATE_WIZARD:
               return <CreateWizard />;
@@ -237,9 +247,9 @@ const App: React.FC = () => {
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onReset={requestReset}
         focusMode={focusMode}
+        businessName={businessContext.name}
       >
         {renderContent()}
-        {/* Hide Assistant in Focus Mode to save space */}
         {!focusMode && <AssistantSidebar context={businessContext} />}
       </Layout>
 
@@ -248,7 +258,13 @@ const App: React.FC = () => {
         onClose={() => setShowResetModal(false)}
         onConfirm={performReset}
         title="Start New Session?"
-        message="This will completely clear your current profile data, diagnosis results, and action plan. This action cannot be undone."
+        message="This will clear your current profile data."
+      />
+
+      <QuickStartModal
+        isOpen={showQuickStartModal}
+        onClose={() => setShowQuickStartModal(false)}
+        onSubmit={handleQuickStart}
       />
     </>
   );

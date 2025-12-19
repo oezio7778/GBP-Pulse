@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppView } from '../types';
-import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, Maximize2, Minimize2 } from 'lucide-react';
+import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, Maximize2, Minimize2, User, Building2 } from 'lucide-react';
 
 interface LayoutProps {
   currentView: AppView;
@@ -9,9 +9,10 @@ interface LayoutProps {
   toggleSidebar: () => void;
   onReset?: () => void;
   focusMode?: boolean;
+  businessName?: string;
 }
 
-const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleSidebar, onReset, focusMode = false }) => {
+const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleSidebar, onReset, focusMode = false, businessName }) => {
   
   const navItems = [
     { id: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -66,11 +67,23 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
             </button>
           )}
 
-          <div className="bg-slate-800 rounded-xl p-4">
-            <h4 className="text-sm font-medium text-slate-300 mb-1">Status</h4>
-            <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-xs text-slate-400">Auto-save Active</span>
+          {/* User / Business Profile Section */}
+          <div className="bg-slate-800 rounded-xl p-4 flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+               {businessName ? (
+                   <span className="font-bold text-white">{businessName.charAt(0)}</span>
+               ) : (
+                   <User className="w-5 h-5 text-slate-400" />
+               )}
+            </div>
+            <div className="overflow-hidden">
+                <p className="text-sm font-bold text-white truncate">
+                    {businessName || 'Guest User'}
+                </p>
+                <p className="text-xs text-slate-400 flex items-center truncate">
+                    <Building2 className="w-3 h-3 mr-1" />
+                    {businessName ? 'Active Profile' : 'No Profile Set'}
+                </p>
             </div>
           </div>
         </div>
