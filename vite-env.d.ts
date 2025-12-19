@@ -1,29 +1,28 @@
 
 /**
- * Global Type Declarations
- * This file ensures that 'process.env.API_KEY' is recognized by the TypeScript compiler.
+ * Global Type Declarations for GBP Pulse
+ * This file satisfies the TypeScript compiler for browser-based environments
+ * that use Node-style globals like 'process.env'.
  */
 
-// Augment the ProcessEnv interface to include the API_KEY requirement.
 interface ProcessEnv {
   API_KEY: string;
   [key: string]: string | undefined;
 }
 
-// Augment the existing global Process interface to ensure process.env is correctly typed.
-// This avoids redeclaring the 'process' variable, which can cause block-scoped conflicts
-// or "must be of type Process" errors if a global Process type is already defined.
 interface Process {
   env: ProcessEnv;
 }
 
+// Global declaration of process is removed because it conflicts with existing
+// block-scoped declarations in the environment (e.g., from Vite or other shims). 
+// TypeScript interface merging handles the typing of the global 'process' variable.
+
+interface AIStudio {
+  hasSelectedApiKey: () => Promise<boolean>;
+  openSelectKey: () => Promise<void>;
+}
+
 interface Window {
-  /**
-   * Use the optional modifier to match standard environment declarations for global window properties
-   * and resolve "All declarations of 'aistudio' must have identical modifiers" errors.
-   */
-  aistudio?: {
-    hasSelectedApiKey: () => Promise<boolean>;
-    openSelectKey: () => Promise<void>;
-  };
+  aistudio?: AIStudio;
 }
