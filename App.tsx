@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout.tsx';
 import DiagnosticWizard from './components/DiagnosticWizard.tsx';
@@ -59,7 +58,7 @@ const App: React.FC = () => {
   };
 
   const handleQuickStart = (name: string, industry: string) => {
-    setBusinessContext({ ...businessContext, name, industry });
+    setBusinessContext(prev => ({ ...prev, name, industry }));
     setShowQuickStartModal(false);
     setCurrentView(AppView.WRITER);
   };
@@ -97,8 +96,8 @@ const App: React.FC = () => {
     setBusinessContext(prev => ({ ...prev, name, industry }));
   };
 
-  const hasActiveSession = businessContext.name && actionPlan.length > 0;
-  const hasIdentitySet = !!businessContext.name;
+  const hasActiveSession = !!(businessContext.name?.trim()) && actionPlan.length > 0;
+  const hasIdentitySet = !!(businessContext.name?.trim());
 
   const renderContent = () => {
     switch (currentView) {
@@ -122,17 +121,18 @@ const App: React.FC = () => {
             </div>
 
             {!hasIdentitySet && (
-               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex items-start gap-4">
+               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex items-start gap-4 shadow-sm">
                   <div className="p-3 bg-amber-100 rounded-2xl flex-shrink-0">
                     <AlertCircle className="w-6 h-6 text-amber-600" />
                   </div>
                   <div>
                     <h3 className="font-bold text-amber-900">Incomplete Profile</h3>
-                    <p className="text-amber-700 text-sm mb-4">Set your business name and industry to unlock the full potential of our AI Diagnostic and Content Studio.</p>
+                    <p className="text-amber-700 text-sm mb-4">You must set your business name and industry to use the full diagnostic tools and content studio.</p>
                     <button 
                       onClick={() => setShowQuickStartModal(true)}
-                      className="text-amber-900 font-bold text-sm underline hover:text-amber-950 transition-colors"
+                      className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
                     >
+                      <PenTool className="w-3.5 h-3.5" />
                       Configure Identity Now
                     </button>
                   </div>
