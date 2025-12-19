@@ -10,7 +10,7 @@ import ClaimGuide from './components/ClaimGuide.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import QuickStartModal from './components/QuickStartModal.tsx';
 import { AppView, BusinessContext, FixStep } from './types.ts';
-import { ArrowRight, RotateCcw, Play, PlusCircle, PenTool, MapPin } from 'lucide-react';
+import { ArrowRight, RotateCcw, Play, PlusCircle, PenTool, MapPin, Settings, AlertCircle, Building2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
@@ -59,7 +59,7 @@ const App: React.FC = () => {
   };
 
   const handleQuickStart = (name: string, industry: string) => {
-    setBusinessContext({ name, industry, issueDescription: '' });
+    setBusinessContext({ ...businessContext, name, industry });
     setShowQuickStartModal(false);
     setCurrentView(AppView.WRITER);
   };
@@ -90,25 +90,54 @@ const App: React.FC = () => {
   };
 
   const handleSwitchBusiness = () => {
-      setBusinessContext({ name: '', industry: '', issueDescription: '' });
       setShowQuickStartModal(true);
   };
 
   const handleUpdateBusiness = (name: string, industry: string) => {
-    setBusinessContext({ name, industry, issueDescription: '' });
+    setBusinessContext(prev => ({ ...prev, name, industry }));
   };
 
   const hasActiveSession = businessContext.name && actionPlan.length > 0;
+  const hasIdentitySet = !!businessContext.name;
 
   const renderContent = () => {
     switch (currentView) {
       case AppView.DASHBOARD:
         return (
           <div className="space-y-8 animate-fade-in-up">
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">Google Business Profile (GBP) Pulse</h1>
-              <p className="text-xl text-slate-600">What would you like to achieve today?</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <h1 className="text-4xl font-bold text-slate-900 mb-2">GBP Pulse Dashboard</h1>
+                <p className="text-xl text-slate-600">Unified command for Google Business Profiles.</p>
+              </div>
+              {!hasIdentitySet && (
+                <button 
+                  onClick={() => setShowQuickStartModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                >
+                  <Building2 className="w-5 h-5" />
+                  <span>Setup Business Identity</span>
+                </button>
+              )}
             </div>
+
+            {!hasIdentitySet && (
+               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex items-start gap-4">
+                  <div className="p-3 bg-amber-100 rounded-2xl flex-shrink-0">
+                    <AlertCircle className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-amber-900">Incomplete Profile</h3>
+                    <p className="text-amber-700 text-sm mb-4">Set your business name and industry to unlock the full potential of our AI Diagnostic and Content Studio.</p>
+                    <button 
+                      onClick={() => setShowQuickStartModal(true)}
+                      className="text-amber-900 font-bold text-sm underline hover:text-amber-950 transition-colors"
+                    >
+                      Configure Identity Now
+                    </button>
+                  </div>
+               </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
@@ -251,6 +280,8 @@ const App: React.FC = () => {
         isOpen={showQuickStartModal}
         onClose={() => setShowQuickStartModal(false)}
         onSubmit={handleQuickStart}
+        initialName={businessContext.name}
+        initialIndustry={businessContext.industry}
       />
     </>
   );
