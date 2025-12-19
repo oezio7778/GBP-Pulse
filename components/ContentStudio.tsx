@@ -43,7 +43,7 @@ const ContentStudio: React.FC<Props> = ({
     if (context.industry) {
       setSetupIndustry(context.industry);
     }
-  }, [context]);
+  }, [context.name, context.industry]);
 
   const [tabInputs, setTabInputs] = useState<Record<TabType, string>>({
     description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: '', challenge: ''
@@ -70,7 +70,7 @@ const ContentStudio: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     if (!context.name || context.name.trim() === '') {
-      setLocalError("Business Name is required. Please set your identity in the form provided or on the Dashboard.");
+      setLocalError("Business Name is required. Use the identity form to continue.");
       return;
     }
 
@@ -150,9 +150,9 @@ const ContentStudio: React.FC<Props> = ({
           <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6">
             <Building2 className="w-10 h-10 animate-pulse" />
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Setup Content Studio</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Initialize Content Studio</h2>
           <p className="text-slate-600 mb-8 leading-relaxed">
-            The Studio needs your business name and industry to craft context-aware posts and profile descriptions.
+            The Content Studio uses your business identity to craft guideline-compliant posts and profile descriptions.
           </p>
           
           <form onSubmit={handleInlineSetupSubmit} className="space-y-4 text-left">
@@ -188,7 +188,7 @@ const ContentStudio: React.FC<Props> = ({
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 mt-4"
             >
-              <span>Activate Studio & Save</span>
+              <span>Activate Studio & Continue</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
