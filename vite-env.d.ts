@@ -3,22 +3,21 @@
  * Global Type Declarations
  * This file ensures that 'process.env.API_KEY' is recognized by the TypeScript compiler.
  */
+
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
+      // Fixed: Changed index signature to match the expected { [key: string]: string; } 
+      // by using 'string' instead of 'string | undefined'.
+      [key: string]: string;
       API_KEY: string;
-      NODE_ENV: 'development' | 'production' | 'test';
+      NODE_ENV: string;
     }
   }
 
-  // Define the Process interface to resolve type mismatch errors where 'process' is expected to be of type 'Process'
-  interface Process {
-    env: NodeJS.ProcessEnv;
-  }
-
-  // Declare the global 'process' variable using the matching 'Process' type
-  var process: Process;
+  // Fixed: Removed the redundant 'interface Process' and 'var process' declarations.
+  // These were causing 'Subsequent property declarations' and 'Subsequent variable declarations' 
+  // errors because they conflicted with existing global definitions in the environment.
 }
 
-// Ensure this file is treated as a module
 export {};
