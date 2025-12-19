@@ -54,6 +54,54 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
   return JSON.parse(response.text || '{}');
 };
 
+export const generateGBPContent = async (
+  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
+  context: BusinessContext, 
+  extraDetails: string
+): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  let specificPrompt = "";
+
+  switch (type) {
+    case 'description':
+      specificPrompt = `Write a professional, SEO-friendly GBP description (max 750 chars). Focus on trustworthiness and local expertise.`;
+      break;
+    case 'post':
+      specificPrompt = `Write a Google Business Profile 'Update' post (max 1500 chars) with a clear Call to Action. Focus on local engagement.`;
+      break;
+    case 'reply':
+      specificPrompt = `Write a professional, empathetic response to a customer review. Ensure a polite and solution-oriented tone.`;
+      break;
+    case 'review_removal':
+      specificPrompt = `Write a formal request for review removal identifying specific Google policy violations (e.g., spam, harassment, off-topic).`;
+      break;
+    case 'q_and_a':
+      specificPrompt = `Generate 3 high-value Q&A pairs that highlight key services or common customer concerns.`;
+      break;
+    case 'photo_ideas':
+      specificPrompt = `Generate 8 photo ideas for their profile, specifically categorized (Interior, Exterior, Team, Product).`;
+      break;
+    case 'blog':
+      specificPrompt = `Write a 400-word local SEO blog post for the company website. Focus on a topic relevant to the business and its local community. Use clear headers and a call to action.`;
+      break;
+  }
+
+  const finalPrompt = `
+    Business: "${context.name}" in "${context.industry}"
+    Task: ${specificPrompt}
+    User Details: "${extraDetails}"
+    
+    CRITICAL INSTRUCTION: Provide ONLY the generated content text. Do NOT include any introductory phrases like "Here is your content" or "Certainly, I can help with that". No conversational filler.
+  `;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: finalPrompt
+  });
+
+  return response.text || "Failed to generate content. Please check your inputs.";
+};
+
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
@@ -85,54 +133,6 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
   });
 
   return JSON.parse(response.text || '{}');
-};
-
-export const generateGBPContent = async (
-  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
-  context: BusinessContext, 
-  extraDetails: string
-): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  let specificPrompt = "";
-
-  switch (type) {
-    case 'description':
-      specificPrompt = `Write a professional, SEO-friendly GBP description (max 750 chars).`;
-      break;
-    case 'post':
-      specificPrompt = `Write a Google Business Profile 'Update' post (max 1500 chars) highlighting a service/offer. Include a Call to Action.`;
-      break;
-    case 'reply':
-      specificPrompt = `Write a professional, empathetic response to a customer review.`;
-      break;
-    case 'review_removal':
-      specificPrompt = `Write a formal request for review removal identifying policy violations.`;
-      break;
-    case 'q_and_a':
-      specificPrompt = `Generate 3 high-value Q&A pairs.`;
-      break;
-    case 'photo_ideas':
-      specificPrompt = `Generate 8 photo ideas for their profile.`;
-      break;
-    case 'blog':
-      specificPrompt = `Write a 400-word local SEO blog post for the company website. Focus on a topic relevant to the business and its local community. Include headers and a local focus.`;
-      break;
-  }
-
-  const finalPrompt = `
-    Business: "${context.name}" in "${context.industry}"
-    Task: ${specificPrompt}
-    User Details: "${extraDetails}"
-    
-    IMPORTANT: Provide ONLY the final content text. Do not include any conversational filler, meta-talk, or introductory sentences like "Here is your post".
-  `;
-
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: finalPrompt
-  });
-
-  return response.text || "Failed to generate content. Please check your inputs.";
 };
 
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
