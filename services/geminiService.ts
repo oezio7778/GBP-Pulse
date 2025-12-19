@@ -17,15 +17,18 @@ Always prioritize "Clean Data" (Consistency between Website, GBP, and Third-part
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Analyze this Google Business Profile issue using 2025 Local SEO and Policy standards:
+    Critically analyze this Google Business Profile issue using 2025 Local SEO and Policy standards.
+    Focus on helping the user UNDERSTAND exactly why this is happening.
+
     Business Name: ${context.name}
     Industry: ${context.industry}
     Issue Description: ${context.issueDescription}
 
     Provide:
     1. CATEGORY: One of [SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER].
-    2. ANALYSIS: A root-cause explanation (max 50 words).
-    3. STEPS: A 3-5 step action plan. Each step needs a clear title and actionable description.
+    2. ANALYSIS: A root-cause explanation. Explain the 'why' behind Google's likely automated trigger or manual penalty (max 60 words). 
+       Mention specific policy points like 'Misleading Content', 'Address Quality', or 'Keyword Stuffing' if applicable.
+    3. STEPS: A 3-5 step action plan to rectify the issue. Each step needs a clear title and actionable description.
     
     Return the response as a JSON object matching the requested schema.
   `;
@@ -125,7 +128,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 
     JSON Requirements:
     - title: Brief catchy title.
-    - bigPicture: Why this matters for GBP health.
+    - bigPicture: Why this matters for GBP health and compliance.
     - steps: Array of 4-6 granular instructions.
     - pitfalls: Array of things to avoid.
     - proTips: Array of advanced optimization tips.
