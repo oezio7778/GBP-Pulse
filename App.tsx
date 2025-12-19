@@ -89,7 +89,6 @@ const App: React.FC = () => {
     setCurrentView(AppView.WRITER);
   };
 
-  // FIXED: This now clears the context AND opens the quick start modal immediately
   const handleSwitchBusiness = () => {
       setBusinessContext({ name: '', industry: '', issueDescription: '' });
       setShowQuickStartModal(true);
