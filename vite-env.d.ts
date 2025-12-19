@@ -1,4 +1,10 @@
 
+/// <reference types="vite/client" />
+/**
+ * Fix: If the environment cannot find 'vite/client' (Error on line 2), ensure 'vite' is 
+ * installed or remove the reference above.
+ */
+
 interface ImportMetaEnv {
   readonly VITE_API_KEY: string;
 }
@@ -8,13 +14,9 @@ interface ImportMeta {
 }
 
 /**
- * We augment the NodeJS namespace to provide specific typing for the environment
- * variables used in this project. The 'process' variable itself is provided 
- * by @types/node, which is explicitly referenced in the service files.
+ * Fix: Removed the manual 'declare global' for 'process' (Error on line 18). 
+ * Redefining 'process' when it is already provided by existing type definitions 
+ * (like @types/node) causes a "Subsequent variable declarations must have the same type" error.
  */
-declare namespace NodeJS {
-  interface ProcessEnv {
-    API_KEY: string;
-    NODE_ENV: 'development' | 'production' | 'test';
-  }
-}
+
+export {};
