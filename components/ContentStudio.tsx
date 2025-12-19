@@ -6,7 +6,10 @@ import {
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
   Send, Flag, Maximize2, Minimize2, 
   ExternalLink, MessageCircleQuestion, 
-  Image, Users, Trash2, BookOpen, Settings
+  Image, Users, Trash2, BookOpen, Settings,
+  AlertCircle,
+  // Added missing Bot icon import
+  Bot
 } from 'lucide-react';
 
 interface Props {
@@ -32,13 +35,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   const [copied, setCopied] = useState(false);
   const [showPublishGuide, setShowPublishGuide] = useState(false);
 
-  // Automatically trigger business setup if missing when entering the Studio
-  useEffect(() => {
-    if (!context.name && onSwitchBusiness) {
-      onSwitchBusiness();
-    }
-  }, [context.name, onSwitchBusiness]);
-
   const currentInput = tabInputs[activeTab];
   const currentOutput = tabOutputs[activeTab];
 
@@ -51,10 +47,12 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   };
 
   const handleGenerate = async () => {
+    // Safety check - though UI should prevent this state
     if (!context.name) {
       if (onSwitchBusiness) onSwitchBusiness();
       return;
     }
+
     setLoading(true);
     setCopied(false);
     setShowPublishGuide(false);
@@ -98,33 +96,57 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
       case 'description': return "List your history, services, and unique value proposition...";
       case 'post': return "What's the update or offer? (e.g., '10% off plumbing this week')...";
       case 'reply': return "Paste the customer review here...";
-      case 'challenge': return "e.g. Family owned since 1990, specializing in emergency plumbing...";
-      case 'review_removal': return "Why should this be removed? (e.g. Off-topic, spam)...";
-      case 'q_and_a': return "Enter common questions or topics...";
-      case 'photo_ideas': return "Describe your workspace or location...";
-      case 'blog': return "What topic should the post cover? (e.g., 'Maintaining your AC in Summer')...";
+      case 'challenge': return "e.g. Family owned since 1990, specializing in emergency plumbing. Mention specific evidence like business license or utility bills...";
+      case 'review_removal': return "Why should this be removed? (e.g. Off-topic, spam, conflict of interest)...";
+      case 'q_and_a': return "Enter common customer questions or specific topics to address...";
+      case 'photo_ideas': return "Describe your workspace, typical job site, or local landmark...";
+      case 'blog': return "What topic should the post cover? (e.g., 'How to detect a leak before it costs you thousands')...";
       default: return "";
     }
   };
 
   const getInputLabel = () => {
-    if (activeTab === 'challenge') return "Unique Selling Points & History";
+    if (activeTab === 'challenge') return "Grounding Evidence & History";
     return "Input Prompt";
   };
 
   const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
+
+  // If no business name is set, show a full-screen block inside the studio
+  if (!context.name) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center animate-fade-in">
+        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mb-6">
+          <Settings className="w-10 h-10 animate-pulse" />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-900 mb-4">Studio Setup Required</h2>
+        <p className="text-slate-600 max-w-md mb-8 leading-relaxed">
+          The Content Studio uses your business name and industry to tailor AI responses. Please set your business details to continue.
+        </p>
+        <button 
+          onClick={onSwitchBusiness}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+        >
+          <Users className="w-5 h-5" />
+          <span>Set Business Profile</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col animate-fade-in-up">
       <div className="mb-6 flex justify-between items-start">
         <div>
           <h2 className="text-3xl font-bold text-slate-900">Content Studio</h2>
-          <p className="text-slate-600">Generate content & appeals.</p>
+          <p className="text-slate-600 font-medium flex items-center gap-2">
+            Generating for: <span className="text-blue-600">{context.name}</span>
+          </p>
         </div>
         <div className="flex space-x-2">
           {onSwitchBusiness && (
             <button onClick={onSwitchBusiness} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
-              <Users className="w-4 h-4" /> <span className="text-sm font-medium">Switch Business</span>
+              <Users className="w-4 h-4" /> <span className="text-sm font-medium">Switch</span>
             </button>
           )}
           <button onClick={toggleFocusMode} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
@@ -135,6 +157,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
       </div>
 
       <div className={`flex-1 grid gap-6 min-h-0 ${focusMode ? 'grid-cols-1' : 'lg:grid-cols-12'}`}>
+        {/* Input Controls */}
         <div className={`${focusMode ? '' : 'lg:col-span-4'} flex flex-col space-y-4`}>
           <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
             {navTools.map((tool) => (
@@ -149,58 +172,39 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[350px]">
-            {!context.name ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
-                  <Settings className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">Setup Required</h3>
-                  <p className="text-xs text-slate-500 mt-1">We need your business name and industry to generate accurate content.</p>
-                </div>
-                <button 
-                  onClick={onSwitchBusiness}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
-                >
-                  Quick Start Setup
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
-                  {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
-                </div>
-                <textarea
-                  key={`studio-input-${activeTab}`}
-                  className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm placeholder:text-slate-400"
-                  placeholder={getPlaceholder()}
-                  value={currentInput}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                />
-                <button 
-                  onClick={handleGenerate} 
-                  disabled={loading || !currentInput.trim()} 
-                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
-                >
-                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
-                  <span>{loading ? 'Thinking...' : `Generate ${activeToolLabel}`}</span>
-                </button>
-              </>
-            )}
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
+              {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors" title="Clear All"><Trash2 className="w-4 h-4" /></button>}
+            </div>
+            <textarea
+              key={`studio-input-${activeTab}`}
+              className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm placeholder:text-slate-400 leading-relaxed"
+              placeholder={getPlaceholder()}
+              value={currentInput}
+              onChange={(e) => handleInputChange(e.target.value)}
+            />
+            <button 
+              onClick={handleGenerate} 
+              disabled={loading || !currentInput.trim()} 
+              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+            >
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
+              <span>{loading ? 'Consulting Experts...' : `Generate ${activeToolLabel}`}</span>
+            </button>
           </div>
         </div>
 
+        {/* Output Preview */}
         <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
           <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">GOOGLE SEARCH PREVIEW</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">PREVIEW & EXPORT</span>
             {currentOutput && (
               <button 
                 onClick={() => copyToClipboard(currentOutput)} 
                 className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-600 bg-white border border-slate-300 px-3 py-1.5 rounded-md transition-all active:scale-95"
               >
                 {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                <span>{copied ? 'Copied' : 'Copy'}</span>
+                <span>{copied ? 'Copied' : 'Copy Text'}</span>
               </button>
             )}
           </div>
@@ -237,18 +241,21 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
                     onClick={() => setShowPublishGuide(true)} 
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                   >
-                    <Send className="w-4 h-4" /> <span>Finalize & Open Google</span>
+                    <Send className="w-4 h-4" /> <span>Open Google Business Profile</span>
                   </button>
                   {showPublishGuide && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-scale-in">
-                      <p className="text-xs text-blue-800 mb-3">Your content is copied. Click the button below to open your GBP dashboard and paste it into the appropriate field.</p>
+                      <p className="text-xs text-blue-800 mb-3 flex items-start gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                        <span>Your content has been copied. Click below to open your GBP dashboard, find the appropriate section, and paste the result.</span>
+                      </p>
                       <a 
                         href="https://business.google.com/" 
                         target="_blank" 
                         rel="noreferrer" 
-                        className="w-full py-2 bg-blue-600 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+                        className="w-full py-2 bg-blue-600 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
                       >
-                        <span>Go to Google Now</span>
+                        <span>Go to Google Dashboard</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -257,24 +264,29 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-40">
-                <div className="w-16 h-16 mb-4 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-xl">
+                <div className="w-16 h-16 mb-4 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl">
                     <PenTool className="w-8 h-8" />
                 </div>
-                <p className="text-sm font-medium uppercase tracking-wide text-center">Your content will appear here</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-center">Studio Output</p>
+                <p className="text-xs mt-1 text-center">Select a tool and provide context to begin</p>
               </div>
             )}
           </div>
 
           {/* Persistent Footer Link */}
-          <div className="p-4 bg-white border-t border-slate-100">
+          <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
              <a 
               href="https://business.google.com/" 
               target="_blank" 
               rel="noreferrer"
-              className="text-slate-500 hover:text-blue-600 transition-colors text-sm font-semibold flex items-center gap-1.5"
+              className="text-slate-400 hover:text-blue-600 transition-all text-xs font-bold flex items-center gap-2"
              >
                Launch GBP Dashboard <ExternalLink className="w-3.5 h-3.5" />
              </a>
+             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-tighter">
+               <Bot className="w-3 h-3" />
+               <span>Gemini 3 Powered</span>
+             </div>
           </div>
         </div>
       </div>
