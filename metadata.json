@@ -1,5 +1,8 @@
+
 {
   "name": "GBP Pulse",
   "description": "An AI-powered diagnostic and optimization suite for Google Business Profiles. Identify suspension triggers, verification issues, and generate compliant, high-ranking content.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }
