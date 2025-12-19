@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from './components/Layout';
-import DiagnosticWizard from './components/DiagnosticWizard';
-import ActionPlan from './components/ActionPlan';
-import ContentStudio from './components/ContentStudio';
-import AssistantSidebar from './components/AssistantSidebar';
-import CreateWizard from './components/CreateWizard';
-import ClaimGuide from './components/ClaimGuide';
-import ConfirmationModal from './components/ConfirmationModal';
-import QuickStartModal from './components/QuickStartModal';
-import { AppView, BusinessContext, FixStep } from './types';
+import Layout from './components/Layout.tsx';
+import DiagnosticWizard from './components/DiagnosticWizard.tsx';
+import ActionPlan from './components/ActionPlan.tsx';
+import ContentStudio from './components/ContentStudio.tsx';
+import AssistantSidebar from './components/AssistantSidebar.tsx';
+import CreateWizard from './components/CreateWizard.tsx';
+import ClaimGuide from './components/ClaimGuide.tsx';
+import ConfirmationModal from './components/ConfirmationModal.tsx';
+import QuickStartModal from './components/QuickStartModal.tsx';
+import { AppView, BusinessContext, FixStep } from './types.ts';
 import { ArrowRight, RotateCcw, Play, PlusCircle, PenTool, MapPin } from 'lucide-react';
 
 const App: React.FC = () => {
