@@ -11,6 +11,7 @@ Your expertise covers:
 - Compliance with the latest 2024/2025 Google Merchant & Business representation policies.
 
 Tone: Clinical yet supportive, professional, and authoritative. 
+Goal: Help the user UNDERSTAND the hidden logic behind Google's decisions. 
 Always prioritize "Clean Data" (Consistency between Website, GBP, and Third-party citations).`;
 
 // Diagnose GBP issues and generate a fix plan
@@ -26,8 +27,8 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
 
     Provide:
     1. CATEGORY: One of [SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER].
-    2. ANALYSIS: A root-cause explanation. Explain the 'why' behind Google's likely automated trigger or manual penalty (max 60 words). 
-       Mention specific policy points like 'Misleading Content', 'Address Quality', or 'Keyword Stuffing' if applicable.
+    2. ANALYSIS: A root-cause explanation. Explain the 'why' behind Google's likely automated trigger or manual penalty (max 75 words). 
+       Be specific about policy violations like 'Keyword Stuffing', 'Prohibited Address Type', or 'Inconsistent NAP'.
     3. STEPS: A 3-5 step action plan to rectify the issue. Each step needs a clear title and actionable description.
     
     Return the response as a JSON object matching the requested schema.
@@ -128,7 +129,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 
     JSON Requirements:
     - title: Brief catchy title.
-    - bigPicture: Why this matters for GBP health and compliance.
+    - bigPicture: Why this matters for GBP health and compliance. Explain the 'Why' behind this step.
     - steps: Array of 4-6 granular instructions.
     - pitfalls: Array of things to avoid.
     - proTips: Array of advanced optimization tips.
@@ -167,7 +168,7 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
     Address: ${data.address}
     Type: ${data.isServiceArea ? "Service Area" : "Storefront"}
     
-    Check for: Keyword stuffing in name, prohibited address types, category relevance.
+    Check for: Keyword stuffing in name, prohibited address types, category relevance. Explain WHY any detected issues are risky.
   `;
 
   const response = await ai.models.generateContent({
@@ -209,7 +210,7 @@ export const sendChatMessage = async (
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
   if (context && context.name) {
-    systemInstruction += `\n\nActive Context: You are discussing "${context.name}", a "${context.industry}" business. Always tailor advice to this specific vertical.`;
+    systemInstruction += `\n\nActive Context: You are discussing "${context.name}", a "${context.industry}" business. Always tailor advice to this specific vertical. Focus on helping them understand the underlying causes of their issues.`;
   }
 
   const chat = ai.chats.create({
