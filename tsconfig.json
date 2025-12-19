@@ -16,9 +16,9 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node"],
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]
   },
   "include": ["**/*.ts", "**/*.tsx", "vite-env.d.ts"],
   "exclude": ["node_modules"]
