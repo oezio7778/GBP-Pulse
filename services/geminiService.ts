@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
@@ -25,7 +24,7 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: prompt,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -68,7 +67,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: prompt,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -89,7 +88,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 };
 
 export const generateGBPContent = async (
-  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas', 
+  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
@@ -101,7 +100,7 @@ export const generateGBPContent = async (
       specificPrompt = `Write a professional, SEO-friendly GBP description (max 750 chars).`;
       break;
     case 'post':
-      specificPrompt = `Write a GBP 'Update' post (max 1500 chars) with a Call to Action.`;
+      specificPrompt = `Write a Google Business Profile 'Update' post (max 1500 chars) highlighting a service/offer. Include a Call to Action.`;
       break;
     case 'reply':
       specificPrompt = `Write a professional, empathetic response to a customer review.`;
@@ -110,11 +109,14 @@ export const generateGBPContent = async (
       specificPrompt = `Write a formal request for review removal identifying policy violations.`;
       break;
     case 'q_and_a':
-        specificPrompt = `Generate 3 high-value Q&A pairs.`;
-        break;
+      specificPrompt = `Generate 3 high-value Q&A pairs.`;
+      break;
     case 'photo_ideas':
-        specificPrompt = `Generate 8 photo ideas for their profile.`;
-        break;
+      specificPrompt = `Generate 8 photo ideas for their profile.`;
+      break;
+    case 'blog':
+      specificPrompt = `Write a 400-word local SEO blog post for the company website. Focus on a topic relevant to the business and its local community. Include headers and a local focus.`;
+      break;
   }
 
   const finalPrompt = `
@@ -122,32 +124,32 @@ export const generateGBPContent = async (
     Task: ${specificPrompt}
     User Details: "${extraDetails}"
     
-    IMPORTANT: Provide ONLY the content text. No conversational filler.
+    IMPORTANT: Provide ONLY the final content text. Do not include any conversational filler, meta-talk, or introductory sentences like "Here is your post".
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: [{ parts: [{ text: finalPrompt }] }]
+    contents: finalPrompt
   });
 
-  return response.text || "Failed to generate content.";
+  return response.text || "Failed to generate content. Please check your inputs.";
 };
 
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Audit this GBP data:
+    Audit this GBP data for compliance and optimization:
     Name: ${data.businessName}
     Category: ${data.category}
     Address: ${data.address}
     Type: ${data.isServiceArea ? "Service Area" : "Storefront"}
     
-    Check for compliance and return JSON.
+    Return result as JSON.
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: prompt,
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -182,7 +184,7 @@ export const sendChatMessage = async (
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
   if (context && context.name) {
-    systemInstruction += `\n\nCONTEXT: Business is ${context.name}.`;
+    systemInstruction += `\n\nCONTEXT: Business is ${context.name}, Industry is ${context.industry}.`;
   }
 
   const chat = ai.chats.create({
