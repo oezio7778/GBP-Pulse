@@ -1,7 +1,4 @@
 
-// Fix: Removed failing reference to vite/client as it is not found in the current environment
-// /// <reference types="vite/client" />
-
 interface ImportMetaEnv {
   readonly VITE_API_KEY: string;
 }
@@ -11,9 +8,9 @@ interface ImportMeta {
 }
 
 /**
- * Fix: Removed the 'declare var process' line to resolve the redeclaration error.
- * We continue to extend the NodeJS namespace to provide type definitions for 
- * process.env.API_KEY, ensuring compatibility with Gemini API guidelines.
+ * We augment the NodeJS namespace to provide specific typing for the environment
+ * variables used in this project. The 'process' variable itself is provided 
+ * by @types/node, which is explicitly referenced in the service files.
  */
 declare namespace NodeJS {
   interface ProcessEnv {
