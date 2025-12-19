@@ -31,7 +31,6 @@ const ContentStudio: React.FC<Props> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('description');
   
-  // Initialize with safe string fallbacks
   const [setupName, setSetupName] = useState(String(context?.name || ''));
   const [setupIndustry, setSetupIndustry] = useState(String(context?.industry || ''));
   const [localError, setLocalError] = useState<string | null>(null);
@@ -66,7 +65,7 @@ const ContentStudio: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     if (!context?.name || String(context.name).trim() === '') {
-      setLocalError("Business Name is required. Use the setup form below.");
+      setLocalError("Business Name is required. Please activate the studio using the setup form.");
       return;
     }
 
@@ -137,7 +136,6 @@ const ContentStudio: React.FC<Props> = ({
 
   const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
 
-  // Defensive empty state check
   const isBusinessNameEmpty = !context?.name || String(context.name).trim() === '';
 
   if (isBusinessNameEmpty) {
