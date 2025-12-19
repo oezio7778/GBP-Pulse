@@ -111,7 +111,7 @@ const ContentStudio: React.FC<Props> = ({
       case 'description': return "List your history, services, and unique value proposition...";
       case 'post': return "What's the update or offer? (e.g., '10% off plumbing this week')...";
       case 'reply': return "Paste the customer review here...";
-      case 'challenge': return "Describe the issue you are appealing (e.g., Wrongly suspended for 'Deceptive Content' after address change)...";
+      case 'challenge': return "Describe the issue you are appealing (e.g., Wrongly suspended for 'Deceptive Content' after address change). Provide evidence like license numbers or utility bill mentions...";
       case 'review_removal': return "Why should this be removed? (e.g. Off-topic, spam, conflict of interest)...";
       case 'q_and_a': return "Enter common customer questions or specific topics to address...";
       case 'photo_ideas': return "Describe your workspace, typical job site, or local landmark...";
@@ -127,16 +127,16 @@ const ContentStudio: React.FC<Props> = ({
 
   const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
 
-  // If no business name is set, show the INLINE SETUP FORM immediately
+  // INLINE SETUP: This replaces any unreliable popup modal
   if (!context.name) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-white rounded-3xl border border-slate-200 shadow-xl p-8 md:p-12 text-center animate-fade-in max-w-2xl mx-auto">
         <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-          <Settings className="w-10 h-10 animate-pulse" />
+          <Settings className="w-10 h-10 animate-spin-slow" />
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-4">Content Studio Setup</h2>
+        <h2 className="text-3xl font-bold text-slate-900 mb-4">Content Studio Identity</h2>
         <p className="text-slate-600 mb-8 leading-relaxed">
-          The Studio needs a few details to tailor AI-generated content to your brand and industry.
+          The Studio needs to know which business you are writing for to generate highly accurate, guideline-compliant content.
         </p>
         
         <form onSubmit={handleInlineSetupSubmit} className="w-full space-y-4 text-left">
@@ -147,8 +147,8 @@ const ContentStudio: React.FC<Props> = ({
               <input
                 type="text"
                 autoFocus
-                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="e.g. Joe's Auto Repair"
+                className="w-full pl-10 pr-4 py-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="e.g. Prestige Plumbers"
                 value={setupName}
                 onChange={(e) => setSetupName(e.target.value)}
                 required
@@ -160,8 +160,8 @@ const ContentStudio: React.FC<Props> = ({
             <label className="block text-sm font-semibold text-slate-700 mb-1">Industry</label>
             <input
               type="text"
-              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="e.g. Automotive, Plumbing, Law"
+              className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="e.g. Plumbing Services"
               value={setupIndustry}
               onChange={(e) => setSetupIndustry(e.target.value)}
               required
@@ -172,7 +172,7 @@ const ContentStudio: React.FC<Props> = ({
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 mt-4"
           >
-            <span>Launch Content Studio</span>
+            <span>Activate Content Studio</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
@@ -186,7 +186,7 @@ const ContentStudio: React.FC<Props> = ({
         <div>
           <h2 className="text-3xl font-bold text-slate-900">Content Studio</h2>
           <p className="text-slate-600 font-medium flex items-center gap-2 mt-1">
-            Generating for: <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{context.name}</span>
+            Active Profile: <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{context.name}</span>
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -209,27 +209,27 @@ const ContentStudio: React.FC<Props> = ({
       </div>
 
       <div className={`flex-1 grid gap-6 min-h-0 ${focusMode ? 'grid-cols-1' : 'lg:grid-cols-12'}`}>
-        {/* Input Side */}
+        {/* Left Col: Tools */}
         <div className={`${focusMode ? '' : 'lg:col-span-4'} flex flex-col space-y-4`}>
-          <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
+          <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1.5 rounded-2xl">
             {navTools.map((tool) => (
               <button 
                 key={tool.id} 
                 onClick={() => { setActiveTab(tool.id as TabType); setShowPublishGuide(false); }} 
-                className={`py-2 rounded-lg text-[10px] font-bold flex flex-col items-center justify-center gap-1 transition-all ${activeTab === tool.id ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`py-3 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1.5 transition-all ${activeTab === tool.id ? 'bg-white text-blue-600 shadow-md border border-slate-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
               >
-                <tool.icon className="w-3.5 h-3.5" /> <span>{tool.label}</span>
+                <tool.icon className="w-4 h-4" /> <span>{tool.label}</span>
               </button>
             ))}
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[350px]">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[400px]">
+            <div className="flex justify-between items-center mb-3">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{getInputLabel()}</label>
               {(currentInput || currentOutput) && (
                 <button 
                   onClick={clearTab} 
-                  className="text-slate-400 hover:text-red-500 transition-colors" 
+                  className="text-slate-300 hover:text-red-500 transition-colors p-1" 
                   title="Clear All"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -238,7 +238,7 @@ const ContentStudio: React.FC<Props> = ({
             </div>
             <textarea
               key={`studio-input-${activeTab}`}
-              className="flex-1 w-full p-4 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50/50 text-slate-900 text-sm placeholder:text-slate-400 leading-relaxed"
+              className="flex-1 w-full p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50/50 text-slate-900 text-sm placeholder:text-slate-400 leading-relaxed transition-all"
               placeholder={getPlaceholder()}
               value={currentInput}
               onChange={(e) => handleInputChange(e.target.value)}
@@ -246,22 +246,22 @@ const ContentStudio: React.FC<Props> = ({
             <button 
               onClick={handleGenerate} 
               disabled={loading || !currentInput.trim()} 
-              className="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg active:scale-95"
+              className="mt-6 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
-              <span>{loading ? 'Synthesizing...' : `Generate ${activeToolLabel}`}</span>
+              <span>{loading ? 'Consulting Experts...' : `Generate ${activeToolLabel}`}</span>
             </button>
           </div>
         </div>
 
-        {/* Output Side */}
-        <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
-          <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PREVIEW AREA</span>
+        {/* Right Col: Output */}
+        <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
+          <div className="bg-slate-50 border-b border-slate-100 p-4 flex justify-between items-center">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Studio Preview</span>
             {currentOutput && (
               <button 
                 onClick={() => copyToClipboard(currentOutput)} 
-                className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 bg-white border border-slate-300 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 bg-white border border-slate-200 px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Copy Text'}</span>
@@ -269,82 +269,81 @@ const ContentStudio: React.FC<Props> = ({
             )}
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto bg-slate-50/30 flex flex-col">
+          <div className="flex-1 p-6 md:p-8 overflow-y-auto bg-slate-50/30 flex flex-col">
             {currentOutput ? (
-              <div className="max-w-xl mx-auto w-full space-y-4 animate-fade-in flex-1">
+              <div className="max-w-2xl mx-auto w-full space-y-6 animate-fade-in">
                 {activeTab === 'post' && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">{context.name?.charAt(0) || 'B'}</div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-inner">{context.name?.charAt(0) || 'B'}</div>
                       <div className="text-xs">
-                        <p className="font-bold">{context.name}</p>
-                        <p className="text-slate-500">Draft Post Preview</p>
+                        <p className="font-bold text-slate-900">{context.name}</p>
+                        <p className="text-slate-400 font-medium">Draft Google Post Preview</p>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-800 whitespace-pre-wrap">{currentOutput}</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{currentOutput}</p>
                   </div>
                 )}
                 
                 {activeTab === 'reply' && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4 border-l-4 border-l-blue-600">
-                    <p className="text-[10px] uppercase font-bold text-blue-600 mb-2">Response from Owner</p>
-                    <p className="text-sm text-slate-800 italic whitespace-pre-wrap">"{currentOutput}"</p>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-4 border-l-4 border-l-blue-600">
+                    <p className="text-[10px] uppercase font-bold text-blue-600 mb-3 tracking-widest">Response from Owner</p>
+                    <p className="text-sm text-slate-800 italic whitespace-pre-wrap leading-relaxed">"{currentOutput}"</p>
                   </div>
                 )}
 
-                <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed min-h-[150px]">
+                <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed min-h-[200px]">
                   {currentOutput}
                 </div>
 
-                <div className="p-4 bg-slate-900 rounded-2xl mt-4 shadow-xl">
+                <div className="p-6 bg-slate-900 rounded-3xl mt-6 shadow-2xl">
                   <button 
                     onClick={() => setShowPublishGuide(true)} 
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                   >
-                    <Send className="w-5 h-5" /> <span>Launch to Dashboard</span>
+                    <Send className="w-5 h-5" /> <span>Launch to GBP Dashboard</span>
                   </button>
                   {showPublishGuide && (
-                    <div className="mt-4 p-4 bg-white/10 border border-white/10 rounded-xl animate-scale-in">
-                      <p className="text-xs text-white/90 mb-3 flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-400" />
-                        <span>The text has been copied. Click below to open your Google Profile and paste the content.</span>
+                    <div className="mt-6 p-5 bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl animate-scale-in text-left">
+                      <p className="text-sm text-white/90 mb-4 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0 text-blue-400" />
+                        <span>The text is copied. Click below to open your Google Profile and paste the content in the correct field.</span>
                       </p>
                       <a 
                         href="https://business.google.com/" 
                         target="_blank" 
                         rel="noreferrer" 
-                        className="w-full py-2 bg-white text-slate-900 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-sm"
+                        className="w-full py-3 bg-white text-slate-900 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg"
                       >
                         <span>GO TO GOOGLE DASHBOARD</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-40">
-                <div className="w-16 h-16 mb-4 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl">
-                    <Bot className="w-8 h-8" />
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-300 opacity-50">
+                <div className="w-20 h-20 mb-6 flex items-center justify-center border-4 border-dashed border-slate-200 rounded-3xl transform rotate-6">
+                    <Bot className="w-10 h-10" />
                 </div>
-                <p className="text-sm font-bold uppercase tracking-widest text-center">Studio Offline</p>
-                <p className="text-xs mt-1 text-center">Select a tool and provide details to awaken the AI</p>
+                <p className="text-sm font-black uppercase tracking-widest text-center">Studio Offline</p>
+                <p className="text-xs mt-2 text-center font-medium">Select a tool and enter details to begin</p>
               </div>
             )}
           </div>
 
-          {/* Persistent Footer */}
-          <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between">
+          <div className="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
              <a 
               href="https://business.google.com/" 
               target="_blank" 
               rel="noreferrer"
-              className="text-slate-400 hover:text-blue-600 transition-all text-[10px] font-black uppercase tracking-tighter flex items-center gap-2"
+              className="text-slate-400 hover:text-blue-600 transition-all text-xs font-black flex items-center gap-2 uppercase tracking-tighter"
              >
-               Launch GBP Dashboard <ExternalLink className="w-3 h-3" />
+               GBP Dashboard <ExternalLink className="w-3.5 h-3.5" />
              </a>
-             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-200 uppercase tracking-widest">
-               <span>Gemini 2.0 Powered</span>
+             <div className="flex items-center gap-2 text-[10px] font-black text-slate-200 uppercase tracking-widest">
+               <span>Gemini 3 Pro Assisted</span>
              </div>
           </div>
         </div>
