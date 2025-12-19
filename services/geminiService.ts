@@ -1,12 +1,14 @@
 
+/// <reference types="node" />
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
 /**
- * We rely on the global 'process' declaration provided in vite-env.d.ts.
- * Removing the local 'declare var process' here to avoid conflicting with 
- * global type definitions.
+ * Explicitly declare process for the compiler to prevent TS2580.
+ * We use 'any' here to bypass the specialized Node.js diagnostic checks
+ * while still accessing the required process.env.API_KEY.
  */
+declare var process: any;
 
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
 Your goal is to help businesses navigate complex issues like account suspensions, video verification hurdles, and ranking drops.
@@ -16,7 +18,7 @@ When diagnosing, ask clarifying questions if the user provides vague details.`;
 
 // Diagnose GBP issues and generate a fix plan
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
-  // Create a new GoogleGenAI instance right before making an API call to ensure it uses the most up-to-date API key
+  // Access process.env.API_KEY as required by system instructions
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Analyze the following Google Business Profile issue based on official Google Guidelines (2024/2025):
@@ -70,7 +72,6 @@ export const generateGBPContent = async (
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
-  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let specificPrompt = "";
 
@@ -119,7 +120,6 @@ export const generateGBPContent = async (
 
 // Generate a deep-dive educational guide for a specific task
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
-  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Provide a deep-dive educational guide for the following Google Business Profile task. 
@@ -155,7 +155,6 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 
 // Audit and validate new GBP profile data
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
-  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Audit this GBP data for compliance and optimization:
@@ -202,7 +201,6 @@ export const sendChatMessage = async (
   newMessage: string,
   context?: BusinessContext
 ) => {
-  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
