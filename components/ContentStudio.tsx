@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
 import { 
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
-  Eye, Send, Flag, ShieldAlert, Maximize2, Minimize2, 
+  Send, Flag, ShieldAlert, Maximize2, Minimize2, 
   ExternalLink, MessageCircleQuestion, 
   Image, Users, Trash2, BookOpen
 } from 'lucide-react';
@@ -20,7 +20,6 @@ type TabType = 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' |
 const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, onSwitchBusiness }) => {
   const [activeTab, setActiveTab] = useState<TabType>('description');
   
-  // Controlled tab input and output state
   const [tabInputs, setTabInputs] = useState<Record<TabType, string>>({
     description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: ''
   });
@@ -32,7 +31,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   const [copied, setCopied] = useState(false);
   const [showPublishGuide, setShowPublishGuide] = useState(false);
 
-  // Derive active data
   const currentInput = tabInputs[activeTab];
   const currentOutput = tabOutputs[activeTab];
 
@@ -53,12 +51,11 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
     setCopied(false);
     setShowPublishGuide(false);
     try {
-      const inputToUse = currentInput;
-      const result = await generateGBPContent(activeTab, context, inputToUse);
+      const result = await generateGBPContent(activeTab, context, currentInput);
       handleOutputChange(result || "No response received from AI.");
     } catch (error) {
       console.error("AI Content Generation Error:", error);
-      handleOutputChange("Generation failed. Please try a different prompt.");
+      handleOutputChange("Generation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -77,33 +74,6 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getPlaceholder = () => {
-    switch (activeTab) {
-      case 'description': return "List your history, main services, and unique value proposition...";
-      case 'post': return "What's new? (e.g., '20% off for first-time customers this weekend')...";
-      case 'reply': return "Paste the customer review here...";
-      case 'review_removal': return "Why should this review be removed? (e.g. Off-topic, spam, harassment)...";
-      case 'q_and_a': return "Enter common customer questions or topics...";
-      case 'photo_ideas': return "Briefly describe your business location or shop interior...";
-      case 'blog': return "What topic should the blog post cover? (e.g., 'Winter plumbing tips for homeowners')...";
-      default: return "";
-    }
-  };
-
-  const getButtonLabel = () => {
-    if (loading) return "Consulting AI...";
-    switch (activeTab) {
-      case 'description': return 'Generate Bio';
-      case 'post': return 'Draft Post';
-      case 'reply': return 'Draft Response';
-      case 'q_and_a': return 'Generate FAQs';
-      case 'photo_ideas': return 'Get Shot List';
-      case 'review_removal': return 'Draft Challenge';
-      case 'blog': return 'Write Blog Post';
-      default: return 'Generate Content';
-    }
-  };
-
   const navTools = [
     { id: 'description', label: 'Bio', icon: FileText },
     { id: 'post', label: 'Post', icon: PenTool },
@@ -114,9 +84,18 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
     { id: 'photo_ideas', label: 'Photos', icon: Image },
   ];
 
-  const smartLink = activeTab === 'review_removal' 
-    ? { url: "https://support.google.com/business/workflow/9945796", label: "Open Removal Tool" }
-    : { url: "https://business.google.com/", label: "GBP Dashboard" };
+  const getPlaceholder = () => {
+    switch (activeTab) {
+      case 'description': return "List your history, services, and unique value proposition...";
+      case 'post': return "What's the update or offer? (e.g., '10% off plumbing this week')...";
+      case 'reply': return "Paste the customer review here...";
+      case 'review_removal': return "Why should this be removed? (e.g. Off-topic, spam)...";
+      case 'q_and_a': return "Enter common questions or topics...";
+      case 'photo_ideas': return "Describe your workspace or location...";
+      case 'blog': return "What topic should the post cover? (e.g., 'Maintaining your AC in Summer')...";
+      default: return "";
+    }
+  };
 
   return (
     <div className="h-full flex flex-col animate-fade-in-up">
@@ -158,32 +137,26 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
               {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
             </div>
             <textarea
-              key={`input-field-${activeTab}`}
+              key={`studio-input-${activeTab}`}
               className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm placeholder:text-slate-400"
               placeholder={getPlaceholder()}
               value={currentInput}
               onChange={(e) => handleInputChange(e.target.value)}
             />
-            {activeTab === 'review_removal' && (
-              <div className="mt-2 text-[10px] leading-tight text-amber-600 bg-amber-50 p-2 rounded-md flex items-start gap-1">
-                <ShieldAlert className="w-3 h-3 flex-shrink-0" />
-                Note: Appeals for policy violations (spam, harassment, etc.) are most effective.
-              </div>
-            )}
             <button 
               onClick={handleGenerate} 
               disabled={loading || !currentInput.trim()} 
               className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
-              <span>{getButtonLabel()}</span>
+              <span>{loading ? 'Thinking...' : 'Generate'}</span>
             </button>
           </div>
         </div>
 
         <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
           <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Recommendation</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Result</span>
             {currentOutput && (
               <button 
                 onClick={() => copyToClipboard(currentOutput)} 
@@ -218,14 +191,14 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
                   </div>
                 )}
 
-                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed font-normal">
+                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed">
                   {currentOutput}
                 </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-40">
                 <PenTool className="w-16 h-16 mb-4" />
-                <p className="text-sm font-medium uppercase tracking-wide">Waiting for prompt...</p>
+                <p className="text-sm font-medium uppercase tracking-wide text-center">Your generated content will appear here</p>
               </div>
             )}
           </div>
@@ -236,22 +209,18 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
                 onClick={() => setShowPublishGuide(true)} 
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 transition-all active:scale-[0.98]"
               >
-                <Send className="w-4 h-4" /> <span>Copy & Finalize on Google</span>
+                <Send className="w-4 h-4" /> <span>Finalize & Open Google</span>
               </button>
               {showPublishGuide && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-scale-in">
-                   <div className="flex justify-between items-start mb-1">
-                     <p className="text-xs font-bold text-blue-800 uppercase tracking-tight">Final Step:</p>
-                     <button onClick={() => setShowPublishGuide(false)} className="text-blue-400 hover:text-blue-600"><Trash2 className="w-3 h-3" /></button>
-                   </div>
-                   <p className="text-xs text-blue-700 mb-3">Your text is copied. Click the link below to open your dashboard and paste this content.</p>
+                   <p className="text-xs text-blue-800 mb-3">Your content is copied. Click the button below to open your GBP dashboard and paste it into the appropriate field.</p>
                    <a 
-                    href={smartLink.url} 
+                    href="https://business.google.com/" 
                     target="_blank" 
                     rel="noreferrer" 
                     className="w-full py-2 bg-blue-600 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
                    >
-                     <span>Open {smartLink.label}</span>
+                     <span>Go to Google Now</span>
                      <ExternalLink className="w-3 h-3" />
                    </a>
                 </div>
