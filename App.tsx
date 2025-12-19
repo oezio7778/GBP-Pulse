@@ -13,7 +13,6 @@ import { ArrowRight, RotateCcw, Play, PlusCircle, PenTool, MapPin, Settings, Ale
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showQuickStartModal, setShowQuickStartModal] = useState(false);
   const [sessionKey, setSessionKey] = useState(0); 
@@ -58,7 +57,8 @@ const App: React.FC = () => {
   };
 
   const handleQuickStart = (name: string, industry: string) => {
-    setBusinessContext(prev => ({ ...prev, name: name.trim(), industry: industry.trim() }));
+    const updated = { ...businessContext, name: name.trim(), industry: industry.trim() };
+    setBusinessContext(updated);
     setShowQuickStartModal(false);
   };
 
@@ -205,7 +205,7 @@ const App: React.FC = () => {
                       className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
                     >
                       <span>Create</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
               </div>
@@ -255,7 +255,7 @@ const App: React.FC = () => {
       <Layout 
         currentView={currentView} 
         setView={setCurrentView}
-        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        toggleSidebar={() => {}}
         onReset={requestReset}
         focusMode={focusMode}
         businessName={businessContext.name}
