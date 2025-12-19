@@ -1,14 +1,6 @@
 
-/// <reference types="node" />
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
-
-/**
- * Explicitly declare process for the compiler to prevent TS2580.
- * We use 'any' here to bypass the specialized Node.js diagnostic checks
- * while still accessing the required process.env.API_KEY.
- */
-declare var process: any;
 
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
 Your goal is to help businesses navigate complex issues like account suspensions, video verification hurdles, and ranking drops.
@@ -18,7 +10,7 @@ When diagnosing, ask clarifying questions if the user provides vague details.`;
 
 // Diagnose GBP issues and generate a fix plan
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
-  // Access process.env.API_KEY as required by system instructions
+  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Analyze the following Google Business Profile issue based on official Google Guidelines (2024/2025):
