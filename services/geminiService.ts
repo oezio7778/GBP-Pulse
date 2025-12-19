@@ -1,7 +1,7 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-// System instruction for the general assistant
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
 Your goal is to help businesses navigate complex issues like account suspensions, video verification hurdles, and ranking drops.
 Always reference current Google Business Profile guidelines (2024/2025). 
@@ -17,7 +17,7 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
     Issue Description: ${context.issueDescription}
 
     1. Categorize the issue into one of these: SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER.
-    2. Provide a clear, professional analysis (2-3 sentences) explaining the likely root cause and the strategy for resolution.
+    2. Provide a clear, professional analysis (2-3 sentences) explaining the likely root cause.
     3. Create a step-by-step action plan to resolve this issue.
     
     Return the response in JSON format.
@@ -25,7 +25,7 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: prompt, // Use direct string for reliability
+    contents: [{ parts: [{ text: prompt }] }],
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -59,24 +59,16 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Provide a deep-dive educational guide for the following Google Business Profile task. 
-    
     Task: ${stepTitle}
     Context Description: ${stepDescription}
     Business Name: ${context.name}
-    Industry: ${context.industry}
 
-    Structure:
-    1. Big Picture: Why this matters.
-    2. Steps: Detailed instructions.
-    3. Pitfalls: Common mistakes.
-    4. Pro Tips: Expert advice.
-    
-    Return in JSON format.
+    Return JSON with: title, bigPicture, steps (array), pitfalls (array), proTips (array).
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: prompt,
+    contents: [{ parts: [{ text: prompt }] }],
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -106,61 +98,56 @@ export const generateGBPContent = async (
 
   switch (type) {
     case 'description':
-      specificPrompt = `Write a professional, SEO-friendly Google Business Profile description (max 750 chars). 
-      Focus on the unique selling points of ${context.name}. Do not keyword stuff.`;
+      specificPrompt = `Write a professional, SEO-friendly GBP description (max 750 chars).`;
       break;
     case 'post':
-      specificPrompt = `Write a Google Business Profile 'Update' post (max 1500 chars) highlighting a service or offer. 
-      Include a Call to Action. Business Name: ${context.name}`;
+      specificPrompt = `Write a GBP 'Update' post (max 1500 chars) with a Call to Action.`;
       break;
     case 'reply':
-      specificPrompt = `Write a professional response to this specific customer review. 
-      If negative, be empathetic. If positive, thank them. Business Name: ${context.name}`;
+      specificPrompt = `Write a professional, empathetic response to a customer review.`;
       break;
     case 'review_removal':
-      specificPrompt = `Write a formal request for review removal based on policy violations. 
-      Identify which Google policy is violated based on this input: ${extraDetails}`;
+      specificPrompt = `Write a formal request for review removal identifying policy violations.`;
       break;
     case 'q_and_a':
-        specificPrompt = `Generate 3 high-value Question & Answer pairs for ${context.name}.`;
+        specificPrompt = `Generate 3 high-value Q&A pairs.`;
         break;
     case 'photo_ideas':
-        specificPrompt = `Generate a 'Shot List' of 8 specific photo ideas for ${context.name} in the ${context.industry} industry.`;
+        specificPrompt = `Generate 8 photo ideas for their profile.`;
         break;
   }
 
   const finalPrompt = `
-    Business: "${context.name}"
-    Industry: "${context.industry}"
+    Business: "${context.name}" in "${context.industry}"
     Task: ${specificPrompt}
-    User Request/Input Details: "${extraDetails}"
+    User Details: "${extraDetails}"
     
-    IMPORTANT: Provide ONLY the requested final content. Do not include introductory text, headers like "Here is your description", or any conversational filler.
+    IMPORTANT: Provide ONLY the content text. No conversational filler.
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: finalPrompt // Use string prompt for better stability
+    contents: [{ parts: [{ text: finalPrompt }] }]
   });
 
-  return response.text || "I was unable to generate content for this request. Please check your inputs and try again.";
+  return response.text || "Failed to generate content.";
 };
 
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Audit this proposed Google Business Profile data for compliance:
+    Audit this GBP data:
     Name: ${data.businessName}
     Category: ${data.category}
     Address: ${data.address}
     Type: ${data.isServiceArea ? "Service Area" : "Storefront"}
     
-    Check for Name Spam and Address violations. Return result as JSON.
+    Check for compliance and return JSON.
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: prompt,
+    contents: [{ parts: [{ text: prompt }] }],
     config: {
       responseMimeType: 'application/json',
       responseSchema: {
@@ -195,7 +182,7 @@ export const sendChatMessage = async (
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
   if (context && context.name) {
-    systemInstruction += `\n\nCONTEXT: Business Name is ${context.name}, Industry is ${context.industry}.`;
+    systemInstruction += `\n\nCONTEXT: Business is ${context.name}.`;
   }
 
   const chat = ai.chats.create({
