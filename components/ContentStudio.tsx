@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+
+import { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
 import { 
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
-  Send, Flag, ShieldAlert, Maximize2, Minimize2, 
+  Send, Flag, Maximize2, Minimize2, 
   ExternalLink, MessageCircleQuestion, 
   Image, Users, Trash2, BookOpen
 } from 'lucide-react';
@@ -15,16 +16,16 @@ interface Props {
   onSwitchBusiness?: () => void;
 }
 
-type TabType = 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog';
+type TabType = 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog' | 'challenge';
 
 const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, onSwitchBusiness }) => {
   const [activeTab, setActiveTab] = useState<TabType>('description');
   
   const [tabInputs, setTabInputs] = useState<Record<TabType, string>>({
-    description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: ''
+    description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: '', challenge: ''
   });
   const [tabOutputs, setTabOutputs] = useState<Record<TabType, string>>({
-    description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: ''
+    description: '', post: '', reply: '', review_removal: '', q_and_a: '', photo_ideas: '', blog: '', challenge: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -77,9 +78,10 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   const navTools = [
     { id: 'description', label: 'Bio', icon: FileText },
     { id: 'post', label: 'Post', icon: PenTool },
-    { id: 'blog', label: 'Blog', icon: BookOpen },
     { id: 'reply', label: 'Reply', icon: MessageSquare },
-    { id: 'review_removal', label: 'Flag', icon: Flag },
+    { id: 'challenge', label: 'Challenge', icon: Flag },
+    { id: 'blog', label: 'Blog', icon: BookOpen },
+    { id: 'review_removal', label: 'Flag', icon: Send },
     { id: 'q_and_a', label: 'FAQ', icon: MessageCircleQuestion },
     { id: 'photo_ideas', label: 'Photos', icon: Image },
   ];
@@ -89,6 +91,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
       case 'description': return "List your history, services, and unique value proposition...";
       case 'post': return "What's the update or offer? (e.g., '10% off plumbing this week')...";
       case 'reply': return "Paste the customer review here...";
+      case 'challenge': return "e.g. Family owned since 1990, specializing in emergency plumbing...";
       case 'review_removal': return "Why should this be removed? (e.g. Off-topic, spam)...";
       case 'q_and_a': return "Enter common questions or topics...";
       case 'photo_ideas': return "Describe your workspace or location...";
@@ -97,12 +100,19 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
     }
   };
 
+  const getInputLabel = () => {
+    if (activeTab === 'challenge') return "Unique Selling Points & History";
+    return "Input Prompt";
+  };
+
+  const activeTool = navTools.find(t => t.id === activeTab);
+
   return (
     <div className="h-full flex flex-col animate-fade-in-up">
       <div className="mb-6 flex justify-between items-start">
         <div>
           <h2 className="text-3xl font-bold text-slate-900">Content Studio</h2>
-          <p className="text-slate-600">Drafting for: <span className="font-bold text-blue-600">{context.name || "Guest Business"}</span></p>
+          <p className="text-slate-600">Generate content & appeals.</p>
         </div>
         <div className="flex space-x-2">
           {onSwitchBusiness && (
@@ -112,7 +122,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
           )}
           <button onClick={toggleFocusMode} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
             {focusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            <span className="text-sm font-medium">{focusMode ? 'Exit Copilot' : 'Copilot'}</span>
+            <span className="text-sm font-medium">{focusMode ? 'Exit Copilot' : 'Copilot Mode'}</span>
           </button>
         </div>
       </div>
@@ -131,9 +141,9 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
             ))}
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[300px]">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[350px]">
             <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Input Prompt</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
               {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
             </div>
             <textarea
@@ -146,17 +156,17 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
             <button 
               onClick={handleGenerate} 
               disabled={loading || !currentInput.trim()} 
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
+              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
-              <span>{loading ? 'Thinking...' : 'Generate'}</span>
+              <span>{loading ? 'Thinking...' : `Generate ${activeTool?.label || 'Content'}`}</span>
             </button>
           </div>
         </div>
 
         <div className={`${focusMode ? '' : 'lg:col-span-8'} bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden`}>
           <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Result</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">GOOGLE SEARCH PREVIEW</span>
             {currentOutput && (
               <button 
                 onClick={() => copyToClipboard(currentOutput)} 
@@ -168,9 +178,9 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
             )}
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto bg-slate-50/50">
+          <div className="flex-1 p-6 overflow-y-auto bg-slate-50/50 flex flex-col">
             {currentOutput ? (
-              <div className="max-w-xl mx-auto space-y-4 animate-fade-in">
+              <div className="max-w-xl mx-auto w-full space-y-4 animate-fade-in flex-1">
                 {activeTab === 'post' && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4">
                     <div className="flex items-center gap-3 mb-3">
@@ -191,42 +201,52 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
                   </div>
                 )}
 
-                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed">
+                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm whitespace-pre-wrap text-sm text-slate-800 leading-relaxed min-h-[150px]">
                   {currentOutput}
+                </div>
+
+                <div className="p-4 bg-white border border-slate-200 rounded-xl mt-4">
+                  <button 
+                    onClick={() => setShowPublishGuide(true)} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                  >
+                    <Send className="w-4 h-4" /> <span>Finalize & Open Google</span>
+                  </button>
+                  {showPublishGuide && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-scale-in">
+                      <p className="text-xs text-blue-800 mb-3">Your content is copied. Click the button below to open your GBP dashboard and paste it into the appropriate field.</p>
+                      <a 
+                        href="https://business.google.com/" 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="w-full py-2 bg-blue-600 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+                      >
+                        <span>Go to Google Now</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-40">
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-40">
                 <PenTool className="w-16 h-16 mb-4" />
-                <p className="text-sm font-medium uppercase tracking-wide text-center">Your generated content will appear here</p>
+                <p className="text-sm font-medium uppercase tracking-wide text-center">Your content will appear here</p>
               </div>
             )}
           </div>
 
-          {currentOutput && (
-            <div className="p-4 bg-white border-t border-slate-200">
-              <button 
-                onClick={() => setShowPublishGuide(true)} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 transition-all active:scale-[0.98]"
-              >
-                <Send className="w-4 h-4" /> <span>Finalize & Open Google</span>
-              </button>
-              {showPublishGuide && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl animate-scale-in">
-                   <p className="text-xs text-blue-800 mb-3">Your content is copied. Click the button below to open your GBP dashboard and paste it into the appropriate field.</p>
-                   <a 
-                    href="https://business.google.com/" 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="w-full py-2 bg-blue-600 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-                   >
-                     <span>Go to Google Now</span>
-                     <ExternalLink className="w-3 h-3" />
-                   </a>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Persistent Footer Link */}
+          <div className="p-4 bg-white border-t border-slate-100">
+             <a 
+              href="https://business.google.com/" 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-slate-500 hover:text-blue-600 transition-colors text-xs font-semibold flex items-center gap-1.5"
+             >
+               Launch GBP Dashboard <ExternalLink className="w-3.5 h-3.5" />
+             </a>
+          </div>
         </div>
       </div>
     </div>
