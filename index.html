@@ -31,13 +31,10 @@
       }
     </style>
     <script>
-      // Process shim for browser environment - Must run before modules load
-      window.process = { 
-        env: { 
-          NODE_ENV: 'development',
-          API_KEY: "" 
-        } 
-      };
+      // Process shim for browser environment - Must not clobber injected environment variables
+      if (typeof window.process === 'undefined') {
+        window.process = { env: { NODE_ENV: 'development' } };
+      }
     </script>
     <script type="importmap">
 {
