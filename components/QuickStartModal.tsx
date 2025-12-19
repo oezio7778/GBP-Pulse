@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Building2, ArrowRight } from 'lucide-react';
+import { Building2, ArrowRight, X } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -23,8 +24,20 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
+    <div 
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in relative">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="p-6 border-b border-slate-100">
           <h3 className="text-xl font-bold text-slate-900">Quick Setup</h3>
           <p className="text-slate-500 text-sm">Tell us about your business to get started.</p>
