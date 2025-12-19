@@ -22,7 +22,11 @@ const App: React.FC = () => {
     try {
       const saved = localStorage.getItem('gbp_context');
       const parsed = saved ? JSON.parse(saved) : null;
-      return parsed || { name: '', industry: '', issueDescription: '' };
+      return {
+        name: parsed?.name || '',
+        industry: parsed?.industry || '',
+        issueDescription: parsed?.issueDescription || ''
+      };
     } catch (e) {
       return { name: '', industry: '', issueDescription: '' };
     }
