@@ -2,6 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
+/**
+ * We rely on the global 'process' declaration provided in vite-env.d.ts.
+ * Removing the local 'declare var process' here to avoid conflicting with 
+ * global type definitions.
+ */
+
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
 Your goal is to help businesses navigate complex issues like account suspensions, video verification hurdles, and ranking drops.
 Always reference current Google Business Profile guidelines (2024/2025). 
