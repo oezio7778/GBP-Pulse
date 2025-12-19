@@ -172,7 +172,9 @@ const App: React.FC = () => {
                     <p className="text-slate-300 mb-8 flex-1 text-sm">
                       Build a perfect profile from scratch. AI audits your data for compliance.
                     </p>
-                    <button onClick={() => setCurrentView(AppView.CREATE_WIZARD)} className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
+                    <button 
+                      onClick={() => setCurrentView(AppView.CREATE_WIZARD)} 
+                      className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
                     >
                       <span>Create</span>
                       <ArrowRight className="w-4 h-4" />
