@@ -5,7 +5,7 @@ import {
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
   Send, Flag, Maximize2, Minimize2, 
   ExternalLink, MessageCircleQuestion, 
-  Image, Users, Trash2, BookOpen, Settings,
+  Image, Trash2, BookOpen, Settings,
   AlertCircle,
   Bot,
   Building2,
@@ -67,7 +67,7 @@ const ContentStudio: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     if (!context.name || context.name.trim() === '') {
-      setLocalError("Business Name is required. Please set your identity using the form above.");
+      setLocalError("Business Name is required. Please set your identity using the form provided.");
       return;
     }
 
@@ -150,7 +150,7 @@ const ContentStudio: React.FC<Props> = ({
           </div>
           <h2 className="text-3xl font-bold text-slate-900 mb-2">Initialize Content Studio</h2>
           <p className="text-slate-600 mb-8 leading-relaxed">
-            The Content Studio uses your business identity to craft guideline-compliant posts and profile descriptions.
+            The Content Studio needs your business identity to craft guideline-compliant posts and profile descriptions.
           </p>
           
           <form onSubmit={handleInlineSetupSubmit} className="space-y-4 text-left">
