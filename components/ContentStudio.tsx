@@ -36,13 +36,10 @@ const ContentStudio: React.FC<Props> = ({
   const [setupIndustry, setSetupIndustry] = useState(context.industry || '');
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Synchronize local form state when the global context updates
   useEffect(() => {
-    if (context.name) {
-      setSetupName(context.name);
-    }
-    if (context.industry) {
-      setSetupIndustry(context.industry);
-    }
+    setSetupName(context.name || '');
+    setSetupIndustry(context.industry || '');
   }, [context.name, context.industry]);
 
   const [tabInputs, setTabInputs] = useState<Record<TabType, string>>({
@@ -70,7 +67,7 @@ const ContentStudio: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     if (!context.name || context.name.trim() === '') {
-      setLocalError("Business Name is required. Use the identity form to continue.");
+      setLocalError("Business Name is required. Please set your identity using the form above.");
       return;
     }
 
@@ -143,6 +140,7 @@ const ContentStudio: React.FC<Props> = ({
 
   const isBusinessNameEmpty = !context.name || context.name.trim() === '';
 
+  // CRITICAL: Render onboarding form if business identity is missing
   if (isBusinessNameEmpty) {
     return (
       <div className="h-full flex flex-col items-center justify-center animate-fade-in-up py-12">
