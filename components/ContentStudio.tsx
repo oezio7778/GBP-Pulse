@@ -1,12 +1,12 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
 import { 
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
   Send, Flag, Maximize2, Minimize2, 
   ExternalLink, MessageCircleQuestion, 
-  Image, Users, Trash2, BookOpen
+  Image, Users, Trash2, BookOpen, Settings
 } from 'lucide-react';
 
 interface Props {
@@ -45,7 +45,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
 
   const handleGenerate = async () => {
     if (!context.name) {
-      alert("Business Name required. Please set it in the Dashboard.");
+      if (onSwitchBusiness) onSwitchBusiness();
       return;
     }
     setLoading(true);
@@ -105,7 +105,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
     return "Input Prompt";
   };
 
-  const activeTool = navTools.find(t => t.id === activeTab);
+  const activeToolLabel = navTools.find(t => t.id === activeTab)?.label || 'Content';
 
   return (
     <div className="h-full flex flex-col animate-fade-in-up">
@@ -117,7 +117,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
         <div className="flex space-x-2">
           {onSwitchBusiness && (
             <button onClick={onSwitchBusiness} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
-              <Users className="w-4 h-4" /> <span className="text-sm font-medium">Switch</span>
+              <Users className="w-4 h-4" /> <span className="text-sm font-medium">Switch Business</span>
             </button>
           )}
           <button onClick={toggleFocusMode} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
@@ -142,25 +142,45 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col min-h-[350px]">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
-              {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
-            </div>
-            <textarea
-              key={`studio-input-${activeTab}`}
-              className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm placeholder:text-slate-400"
-              placeholder={getPlaceholder()}
-              value={currentInput}
-              onChange={(e) => handleInputChange(e.target.value)}
-            />
-            <button 
-              onClick={handleGenerate} 
-              disabled={loading || !currentInput.trim()} 
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
-            >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
-              <span>{loading ? 'Thinking...' : `Generate ${activeTool?.label || 'Content'}`}</span>
-            </button>
+            {!context.name ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                  <Settings className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">Setup Required</h3>
+                  <p className="text-xs text-slate-500 mt-1">We need your business name and industry to generate accurate content.</p>
+                </div>
+                <button 
+                  onClick={onSwitchBusiness}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
+                >
+                  Quick Start Setup
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{getInputLabel()}</label>
+                  {(currentInput || currentOutput) && <button onClick={clearTab} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
+                </div>
+                <textarea
+                  key={`studio-input-${activeTab}`}
+                  className="flex-1 w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 text-slate-900 text-sm placeholder:text-slate-400"
+                  placeholder={getPlaceholder()}
+                  value={currentInput}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                />
+                <button 
+                  onClick={handleGenerate} 
+                  disabled={loading || !currentInput.trim()} 
+                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
+                >
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
+                  <span>{loading ? 'Thinking...' : `Generate ${activeToolLabel}`}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -230,7 +250,9 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-40">
-                <PenTool className="w-16 h-16 mb-4" />
+                <div className="w-16 h-16 mb-4 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-xl">
+                    <PenTool className="w-8 h-8" />
+                </div>
                 <p className="text-sm font-medium uppercase tracking-wide text-center">Your content will appear here</p>
               </div>
             )}
