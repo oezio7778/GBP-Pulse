@@ -21,7 +21,8 @@ const App: React.FC = () => {
   const [businessContext, setBusinessContext] = useState<BusinessContext>(() => {
     try {
       const saved = localStorage.getItem('gbp_context');
-      return saved ? JSON.parse(saved) : { name: '', industry: '', issueDescription: '' };
+      const parsed = saved ? JSON.parse(saved) : null;
+      return parsed || { name: '', industry: '', issueDescription: '' };
     } catch (e) {
       return { name: '', industry: '', issueDescription: '' };
     }
@@ -57,8 +58,11 @@ const App: React.FC = () => {
   };
 
   const handleQuickStart = (name: string, industry: string) => {
-    const updated = { ...businessContext, name: name.trim(), industry: industry.trim() };
-    setBusinessContext(updated);
+    setBusinessContext(prev => ({ 
+      ...prev, 
+      name: (name || '').trim(), 
+      industry: (industry || '').trim() 
+    }));
     setShowQuickStartModal(false);
   };
 
@@ -92,7 +96,11 @@ const App: React.FC = () => {
   };
 
   const handleUpdateBusiness = (name: string, industry: string) => {
-    setBusinessContext(prev => ({ ...prev, name: name.trim(), industry: industry.trim() }));
+    setBusinessContext(prev => ({ 
+      ...prev, 
+      name: (name || '').trim(), 
+      industry: (industry || '').trim() 
+    }));
   };
 
   const hasIdentitySet = !!(businessContext.name && businessContext.name.trim() !== '');
@@ -205,7 +213,7 @@ const App: React.FC = () => {
                       className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
                     >
                       <span>Create</span>
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>
               </div>
