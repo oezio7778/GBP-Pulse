@@ -62,18 +62,24 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
 
 // Generate high-authority content using Gemini 3 Flash
 export const generateGBPContent = async (
-  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
+  type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog' | 'challenge', 
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  let systemContext = ASSISTANT_SYSTEM_INSTRUCTION;
+  if (type === 'challenge') {
+    systemContext += "\n\nWhen generating a 'challenge', you are writing an official appeal or verification justification to Google. Focus on proving legal business existence, physical location evidence, and guideline compliance. Be firm but professional.";
+  }
+
   const taskPrompt = `Generate ${type} content for ${context.name} (${context.industry}). Details: ${extraDetails}`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: taskPrompt,
     config: {
-      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION
+      systemInstruction: systemContext
     }
   });
 
