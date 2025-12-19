@@ -1,16 +1,25 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, ArrowRight, X } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (name: string, industry: string) => void;
+  initialName?: string;
+  initialIndustry?: string;
 }
 
-const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
-  const [name, setName] = useState('');
-  const [industry, setIndustry] = useState('');
+const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialName = '', initialIndustry = '' }) => {
+  const [name, setName] = useState(initialName);
+  const [industry, setIndustry] = useState(initialIndustry);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialName);
+      setIndustry(initialIndustry);
+    }
+  }, [isOpen, initialName, initialIndustry]);
 
   if (!isOpen) return null;
 
@@ -18,8 +27,7 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     if (name && industry) {
       onSubmit(name, industry);
-      setName('');
-      setIndustry('');
+      onClose();
     }
   };
 
@@ -30,7 +38,7 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in relative">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in relative border border-slate-200">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
@@ -38,9 +46,9 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
           <X className="w-5 h-5" />
         </button>
 
-        <div className="p-6 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-900">Quick Setup</h3>
-          <p className="text-slate-500 text-sm">Tell us about your business to get started.</p>
+        <div className="p-6 border-b border-slate-100 bg-slate-50">
+          <h3 className="text-xl font-bold text-slate-900">Business Identity</h3>
+          <p className="text-slate-500 text-sm">Define your business details for AI optimization.</p>
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -51,8 +59,8 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="text"
                 autoFocus
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="e.g. Joe's Pizza"
+                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="e.g. Prestige Plumbers"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -64,8 +72,8 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
             <label className="block text-sm font-semibold text-slate-700 mb-1">Industry</label>
             <input
               type="text"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="e.g. Restaurant"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="e.g. Plumber"
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
               required
@@ -76,15 +84,15 @@ const QuickStartModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
             <button 
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700 rounded-lg shadow-lg shadow-blue-600/20 flex items-center"
+              className="px-6 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700 rounded-lg shadow-lg shadow-blue-600/20 flex items-center transition-all active:scale-95"
             >
-              <span>Start</span>
+              <span>Save & Continue</span>
               <ArrowRight className="w-4 h-4 ml-2" />
             </button>
           </div>
