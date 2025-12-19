@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BusinessContext } from '../types';
 import { generateGBPContent } from '../services/geminiService';
 import { 
@@ -31,6 +31,13 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPublishGuide, setShowPublishGuide] = useState(false);
+
+  // Automatically trigger business setup if missing when entering the Studio
+  useEffect(() => {
+    if (!context.name && onSwitchBusiness) {
+      onSwitchBusiness();
+    }
+  }, [context.name, onSwitchBusiness]);
 
   const currentInput = tabInputs[activeTab];
   const currentOutput = tabOutputs[activeTab];
@@ -264,7 +271,7 @@ const ContentStudio: React.FC<Props> = ({ context, focusMode, toggleFocusMode, o
               href="https://business.google.com/" 
               target="_blank" 
               rel="noreferrer"
-              className="text-slate-500 hover:text-blue-600 transition-colors text-xs font-semibold flex items-center gap-1.5"
+              className="text-slate-500 hover:text-blue-600 transition-colors text-sm font-semibold flex items-center gap-1.5"
              >
                Launch GBP Dashboard <ExternalLink className="w-3.5 h-3.5" />
              </a>
