@@ -2,36 +2,29 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, the industry-leading Google Business Profile diagnostic expert. 
-Your expertise covers:
-- GBP Suspensions (Hard and Soft)
-- Video Verification (Troubleshooting common mobile upload failures)
-- Local Search Ranking Factors (Proximity, Relevance, Prominence)
-- Review Management & Removal Guidelines
-- Compliance with the latest 2024/2025 Google Merchant & Business representation policies.
+const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, an elite Google Business Profile diagnostic specialist.
+Your core mission is to help business owners understand the "Why" behind Google's algorithmic flags.
 
-Tone: Clinical yet supportive, professional, and authoritative. 
-Goal: Help the user UNDERSTAND the hidden logic behind Google's decisions. 
-Always prioritize "Clean Data" (Consistency between Website, GBP, and Third-party citations).`;
+Expertise:
+- Identifying "Hidden" policy triggers (Keyword stuffing, Address spoofing, Virtual offices).
+- Video Verification failure analysis (Device issues vs. Location issues).
+- Local search penalty recovery.
+- Reinstatement appeal strategy.
 
-// Diagnose GBP issues and generate a fix plan
+Tone: Professional, authoritative, and data-driven. Focus on providing clear root-cause analysis.`;
+
+// Diagnose GBP issues using Gemini 3 Pro for deep reasoning
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Critically analyze this Google Business Profile issue using 2025 Local SEO and Policy standards.
-    Focus on helping the user UNDERSTAND exactly why this is happening.
+    Analyze the following GBP issue:
+    Business: ${context.name} (${context.industry})
+    Reported Issue: ${context.issueDescription}
 
-    Business Name: ${context.name}
-    Industry: ${context.industry}
-    Issue Description: ${context.issueDescription}
+    Provide a deep-dive analysis. Explain exactly why Google's automated systems likely flagged this. 
+    Be specific about policy names and technical triggers.
 
-    Provide:
-    1. CATEGORY: One of [SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER].
-    2. ANALYSIS: A root-cause explanation. Explain the 'why' behind Google's likely automated trigger or manual penalty (max 75 words). 
-       Be specific about policy violations like 'Keyword Stuffing', 'Prohibited Address Type', or 'Inconsistent NAP'.
-    3. STEPS: A 3-5 step action plan to rectify the issue. Each step needs a clear title and actionable description.
-    
-    Return the response as a JSON object matching the requested schema.
+    Return JSON matching the schema.
   `;
 
   const response = await ai.models.generateContent({
@@ -43,8 +36,8 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          category: { type: Type.STRING },
-          analysis: { type: Type.STRING },
+          category: { type: Type.STRING, description: 'SUSPENSION, VERIFICATION, RANKING, REVIEWS, or OTHER' },
+          analysis: { type: Type.STRING, description: 'Root cause analysis (max 100 words)' },
           steps: {
             type: Type.ARRAY,
             items: {
@@ -64,53 +57,21 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
     }
   });
 
-  return JSON.parse(response.text || '{"category": "OTHER", "analysis": "Unable to analyze.", "steps": []}');
+  return JSON.parse(response.text || '{"category": "OTHER", "analysis": "Could not analyze.", "steps": []}');
 };
 
-// Generate specific content for GBP profiles
+// Generate high-authority content using Gemini 3 Flash
 export const generateGBPContent = async (
   type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  let specificPrompt = "";
-
-  switch (type) {
-    case 'description':
-      specificPrompt = `Write a professional 750-character bio. NO keyword stuffing. Focus on heritage, unique services, and location relevance.`;
-      break;
-    case 'post':
-      specificPrompt = `Write a GBP 'Update' post. Use local phrasing. Include a hook, offer/detail, and clear CTA.`;
-      break;
-    case 'reply':
-      specificPrompt = `Write a professional response to a review. If negative, be apologetic and move the convo offline. If positive, be thankful and highlight a service mentioned.`;
-      break;
-    case 'review_removal':
-      specificPrompt = `Draft a formal removal appeal to Google based on policy violations like "Spam", "Conflict of Interest", or "Harassment".`;
-      break;
-    case 'q_and_a':
-      specificPrompt = `Generate 3 frequently asked questions and high-authority answers for this specific industry.`;
-      break;
-    case 'photo_ideas':
-      specificPrompt = `Suggest a list of 8 high-impact photos that build trust (Exterior with signage, interior, team at work, etc.).`;
-      break;
-    case 'blog':
-      specificPrompt = `Write a 500-word SEO blog post about a local topic relevant to this business category to build geographic authority.`;
-      break;
-  }
-
-  const finalPrompt = `
-    Business: "${context.name}" (${context.industry})
-    Task: ${specificPrompt}
-    User Details: "${extraDetails}"
-    
-    Output ONLY the final content. No intro/outro.
-  `;
+  const taskPrompt = `Generate ${type} content for ${context.name} (${context.industry}). Details: ${extraDetails}`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: finalPrompt,
+    contents: taskPrompt,
     config: {
       systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION
     }
@@ -119,25 +80,31 @@ export const generateGBPContent = async (
   return response.text || "Failed to generate content.";
 };
 
-// Generate a deep-dive educational guide for a specific task
+// Send a chat message with full context
+export const sendChatMessage = async (
+  history: { role: string; parts: { text: string }[] }[], 
+  newMessage: string,
+  context?: BusinessContext
+) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const chat = ai.chats.create({
+    model: 'gemini-3-flash-preview',
+    config: { 
+        systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION + (context?.name ? `\n\nYou are helping ${context.name}.` : '')
+    },
+    history: history
+  });
+
+  const response = await chat.sendMessage({ message: newMessage });
+  return response.text;
+};
+
+// Educational step guides
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `
-    Create a technical educational guide for this task: "${stepTitle}".
-    Description: "${stepDescription}"
-    Business Context: ${context.name} (${context.industry})
-
-    JSON Requirements:
-    - title: Brief catchy title.
-    - bigPicture: Why this matters for GBP health and compliance. Explain the 'Why' behind this step.
-    - steps: Array of 4-6 granular instructions.
-    - pitfalls: Array of things to avoid.
-    - proTips: Array of advanced optimization tips.
-  `;
-
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: prompt,
+    contents: `Explain how to execute: ${stepTitle}. Context: ${stepDescription} for ${context.name}.`,
     config: {
       systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
@@ -158,22 +125,12 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
   return JSON.parse(response.text || '{}');
 };
 
-// Audit and validate new GBP profile data
+// New Profile Validation
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `
-    Audit this profile for immediate suspension risks:
-    Name: ${data.businessName}
-    Category: ${data.category}
-    Address: ${data.address}
-    Type: ${data.isServiceArea ? "Service Area" : "Storefront"}
-    
-    Check for: Keyword stuffing in name, prohibited address types, category relevance. Explain WHY any detected issues are risky.
-  `;
-
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: prompt,
+    contents: `Audit this profile for policy risks: ${JSON.stringify(data)}`,
     config: {
       systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
@@ -182,7 +139,6 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
         properties: {
           isValid: { type: Type.BOOLEAN },
           issues: { type: Type.ARRAY, items: { type: Type.STRING } },
-          suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
           optimizedDescription: { type: Type.STRING },
           verificationAdvice: {
             type: Type.OBJECT,
@@ -198,27 +154,4 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
   });
 
   return JSON.parse(response.text || '{}');
-};
-
-// Send a chat message with full history and context
-export const sendChatMessage = async (
-  history: { role: string; parts: { text: string }[] }[], 
-  newMessage: string,
-  context?: BusinessContext
-) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
-  
-  if (context && context.name) {
-    systemInstruction += `\n\nActive Context: You are discussing "${context.name}", a "${context.industry}" business. Always tailor advice to this specific vertical. Focus on helping them understand the underlying causes of their issues.`;
-  }
-
-  const chat = ai.chats.create({
-    model: 'gemini-3-flash-preview',
-    config: { systemInstruction },
-    history: history
-  });
-
-  const response = await chat.sendMessage({ message: newMessage });
-  return response.text;
 };
