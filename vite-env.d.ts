@@ -8,17 +8,11 @@ interface ImportMeta {
 }
 
 /**
- * Global declaration of process for environments where it's injected (like Vercel/Vite).
- * We use interface augmentation of 'Process' and 'ProcessEnv' to match existing 
- * global types and avoid redeclaration errors.
+ * Basic global augmentation for process.env to satisfy general compiler checks.
  */
-interface ProcessEnv {
-  API_KEY: string;
-  [key: string]: string | undefined;
+declare namespace NodeJS {
+  interface ProcessEnv {
+    API_KEY: string;
+    [key: string]: string | undefined;
+  }
 }
-
-interface Process {
-  env: ProcessEnv;
-}
-
-declare var process: Process;
