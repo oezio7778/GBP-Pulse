@@ -45,11 +45,15 @@ const App: React.FC = () => {
     localStorage.setItem('gbp_plan', JSON.stringify(actionPlan));
   }, [actionPlan]);
 
+  // Force business setup if entering the studio without a name
   useEffect(() => {
+    if (currentView === AppView.WRITER && !businessContext.name?.trim()) {
+      setShowQuickStartModal(true);
+    }
     if (currentView !== AppView.WRITER) {
       setFocusMode(false);
     }
-  }, [currentView]);
+  }, [currentView, businessContext.name]);
 
   const handleDiagnosisComplete = (context: BusinessContext, steps: FixStep[]) => {
     setBusinessContext(context);
@@ -60,7 +64,7 @@ const App: React.FC = () => {
   const handleQuickStart = (name: string, industry: string) => {
     setBusinessContext(prev => ({ ...prev, name, industry }));
     setShowQuickStartModal(false);
-    setCurrentView(AppView.WRITER);
+    // Navigation is handled by the state change/view logic
   };
 
   const toggleStep = (id: string) => {
