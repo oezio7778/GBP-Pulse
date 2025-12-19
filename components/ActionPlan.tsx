@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { FixStep, BusinessContext } from '../types';
+import { FixStep, BusinessContext } from '../types.ts';
 import { CheckSquare, Square, ExternalLink, ShieldAlert, CheckCircle2, Lightbulb, BookOpen, ChevronRight, Printer, FileDown } from 'lucide-react';
-import GuideDrawer from './GuideDrawer';
+import GuideDrawer from './GuideDrawer.tsx';
 
 interface Props {
   steps: FixStep[];
