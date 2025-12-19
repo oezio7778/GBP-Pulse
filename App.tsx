@@ -86,16 +86,15 @@ const App: React.FC = () => {
   };
 
   const handleOpenStudio = () => {
-    if (businessContext.name) {
-      setCurrentView(AppView.WRITER);
-    } else {
-      setShowQuickStartModal(true);
-    }
+    setCurrentView(AppView.WRITER);
   };
 
   const handleSwitchBusiness = () => {
       setBusinessContext({ name: '', industry: '', issueDescription: '' });
-      setShowQuickStartModal(true);
+  };
+
+  const handleUpdateBusiness = (name: string, industry: string) => {
+    setBusinessContext({ name, industry, issueDescription: '' });
   };
 
   const hasActiveSession = businessContext.name && actionPlan.length > 0;
@@ -205,7 +204,15 @@ const App: React.FC = () => {
       case AppView.PLAN:
         return <ActionPlan steps={actionPlan} context={businessContext} onToggleStep={toggleStep} goToWriter={() => setCurrentView(AppView.WRITER)} />;
       case AppView.WRITER:
-        return <ContentStudio context={businessContext} focusMode={focusMode} toggleFocusMode={() => setFocusMode(!focusMode)} onSwitchBusiness={handleSwitchBusiness} />;
+        return (
+          <ContentStudio 
+            context={businessContext} 
+            focusMode={focusMode} 
+            toggleFocusMode={() => setFocusMode(!focusMode)} 
+            onSwitchBusiness={handleSwitchBusiness}
+            onUpdateBusiness={handleUpdateBusiness}
+          />
+        );
       case AppView.CREATE_WIZARD:
         return <CreateWizard />;
       case AppView.CLAIM_GUIDE:
