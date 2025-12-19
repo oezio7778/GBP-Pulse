@@ -2,27 +2,32 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
 
-const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, a world-class Google Business Profile expert. 
-Your goal is to help businesses navigate complex issues like account suspensions, video verification hurdles, and ranking drops.
-Always reference current Google Business Profile guidelines (2024/2025). 
-Be concise, professional, and empathetic. 
-When diagnosing, ask clarifying questions if the user provides vague details.`;
+const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, the industry-leading Google Business Profile diagnostic expert. 
+Your expertise covers:
+- GBP Suspensions (Hard and Soft)
+- Video Verification (Troubleshooting common mobile upload failures)
+- Local Search Ranking Factors (Proximity, Relevance, Prominence)
+- Review Management & Removal Guidelines
+- Compliance with the latest 2024/2025 Google Merchant & Business representation policies.
+
+Tone: Clinical yet supportive, professional, and authoritative. 
+Always prioritize "Clean Data" (Consistency between Website, GBP, and Third-party citations).`;
 
 // Diagnose GBP issues and generate a fix plan
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
-  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Analyze the following Google Business Profile issue based on official Google Guidelines (2024/2025):
+    Analyze this Google Business Profile issue using 2025 Local SEO and Policy standards:
     Business Name: ${context.name}
     Industry: ${context.industry}
     Issue Description: ${context.issueDescription}
 
-    1. Categorize the issue into one of these: SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER.
-    2. Provide a clear, professional analysis (2-3 sentences) explaining the likely root cause.
-    3. Create a step-by-step action plan to resolve this issue.
+    Provide:
+    1. CATEGORY: One of [SUSPENSION, VERIFICATION, RANKING, REVIEWS, OTHER].
+    2. ANALYSIS: A root-cause explanation (max 50 words).
+    3. STEPS: A 3-5 step action plan. Each step needs a clear title and actionable description.
     
-    Return the response in JSON format.
+    Return the response as a JSON object matching the requested schema.
   `;
 
   const response = await ai.models.generateContent({
@@ -55,7 +60,7 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
     }
   });
 
-  return JSON.parse(response.text || '{}');
+  return JSON.parse(response.text || '{"category": "OTHER", "analysis": "Unable to analyze.", "steps": []}');
 };
 
 // Generate specific content for GBP profiles
@@ -69,34 +74,34 @@ export const generateGBPContent = async (
 
   switch (type) {
     case 'description':
-      specificPrompt = `Write a professional, SEO-friendly GBP description (max 750 chars). Focus on trustworthiness and local expertise.`;
+      specificPrompt = `Write a professional 750-character bio. NO keyword stuffing. Focus on heritage, unique services, and location relevance.`;
       break;
     case 'post':
-      specificPrompt = `Write a Google Business Profile 'Update' post (max 1500 chars) with a clear Call to Action. Focus on local engagement.`;
+      specificPrompt = `Write a GBP 'Update' post. Use local phrasing. Include a hook, offer/detail, and clear CTA.`;
       break;
     case 'reply':
-      specificPrompt = `Write a professional, empathetic response to a customer review. Ensure a polite and solution-oriented tone.`;
+      specificPrompt = `Write a professional response to a review. If negative, be apologetic and move the convo offline. If positive, be thankful and highlight a service mentioned.`;
       break;
     case 'review_removal':
-      specificPrompt = `Write a formal request for review removal identifying specific Google policy violations (e.g., spam, harassment, off-topic).`;
+      specificPrompt = `Draft a formal removal appeal to Google based on policy violations like "Spam", "Conflict of Interest", or "Harassment".`;
       break;
     case 'q_and_a':
-      specificPrompt = `Generate 3 high-value Q&A pairs that highlight key services or common customer concerns.`;
+      specificPrompt = `Generate 3 frequently asked questions and high-authority answers for this specific industry.`;
       break;
     case 'photo_ideas':
-      specificPrompt = `Generate 8 photo ideas for their profile, specifically categorized (Interior, Exterior, Team, Product).`;
+      specificPrompt = `Suggest a list of 8 high-impact photos that build trust (Exterior with signage, interior, team at work, etc.).`;
       break;
     case 'blog':
-      specificPrompt = `Write a 400-word local SEO blog post for the company website. Focus on a topic relevant to the business and its local community. Use clear headers and a call to action.`;
+      specificPrompt = `Write a 500-word SEO blog post about a local topic relevant to this business category to build geographic authority.`;
       break;
   }
 
   const finalPrompt = `
-    Business: "${context.name}" in "${context.industry}"
+    Business: "${context.name}" (${context.industry})
     Task: ${specificPrompt}
     User Details: "${extraDetails}"
     
-    CRITICAL INSTRUCTION: Provide ONLY the generated content text. Do NOT include any introductory phrases or conversational filler.
+    Output ONLY the final content. No intro/outro.
   `;
 
   const response = await ai.models.generateContent({
@@ -107,19 +112,23 @@ export const generateGBPContent = async (
     }
   });
 
-  return response.text || "Failed to generate content. Please check your inputs.";
+  return response.text || "Failed to generate content.";
 };
 
 // Generate a deep-dive educational guide for a specific task
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Provide a deep-dive educational guide for the following Google Business Profile task. 
-    Task: ${stepTitle}
-    Context Description: ${stepDescription}
-    Business Name: ${context.name}
+    Create a technical educational guide for this task: "${stepTitle}".
+    Description: "${stepDescription}"
+    Business Context: ${context.name} (${context.industry})
 
-    Return JSON with: title, bigPicture, steps (array), pitfalls (array), proTips (array).
+    JSON Requirements:
+    - title: Brief catchy title.
+    - bigPicture: Why this matters for GBP health.
+    - steps: Array of 4-6 granular instructions.
+    - pitfalls: Array of things to avoid.
+    - proTips: Array of advanced optimization tips.
   `;
 
   const response = await ai.models.generateContent({
@@ -149,13 +158,13 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Audit this GBP data for compliance and optimization:
+    Audit this profile for immediate suspension risks:
     Name: ${data.businessName}
     Category: ${data.category}
     Address: ${data.address}
     Type: ${data.isServiceArea ? "Service Area" : "Storefront"}
     
-    Return result as JSON.
+    Check for: Keyword stuffing in name, prohibited address types, category relevance.
   `;
 
   const response = await ai.models.generateContent({
@@ -197,7 +206,7 @@ export const sendChatMessage = async (
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
   if (context && context.name) {
-    systemInstruction += `\n\nCONTEXT: Business is ${context.name}, Industry is ${context.industry}.`;
+    systemInstruction += `\n\nActive Context: You are discussing "${context.name}", a "${context.industry}" business. Always tailor advice to this specific vertical.`;
   }
 
   const chat = ai.chats.create({
