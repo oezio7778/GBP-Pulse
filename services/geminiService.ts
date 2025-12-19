@@ -8,7 +8,9 @@ Always reference current Google Business Profile guidelines (2024/2025).
 Be concise, professional, and empathetic. 
 When diagnosing, ask clarifying questions if the user provides vague details.`;
 
+// Diagnose GBP issues and generate a fix plan
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
+  // Create a new GoogleGenAI instance right before making an API call to ensure it uses the most up-to-date API key
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Analyze the following Google Business Profile issue based on official Google Guidelines (2024/2025):
@@ -27,6 +29,7 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
     model: 'gemini-3-pro-preview',
     contents: prompt,
     config: {
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -55,11 +58,13 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
   return JSON.parse(response.text || '{}');
 };
 
+// Generate specific content for GBP profiles
 export const generateGBPContent = async (
   type: 'description' | 'post' | 'reply' | 'review_removal' | 'q_and_a' | 'photo_ideas' | 'blog', 
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
+  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let specificPrompt = "";
 
@@ -92,18 +97,23 @@ export const generateGBPContent = async (
     Task: ${specificPrompt}
     User Details: "${extraDetails}"
     
-    CRITICAL INSTRUCTION: Provide ONLY the generated content text. Do NOT include any introductory phrases like "Here is your content" or "Certainly, I can help with that". No conversational filler.
+    CRITICAL INSTRUCTION: Provide ONLY the generated content text. Do NOT include any introductory phrases or conversational filler.
   `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: finalPrompt
+    contents: finalPrompt,
+    config: {
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION
+    }
   });
 
   return response.text || "Failed to generate content. Please check your inputs.";
 };
 
+// Generate a deep-dive educational guide for a specific task
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
+  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Provide a deep-dive educational guide for the following Google Business Profile task. 
@@ -118,6 +128,7 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
     model: 'gemini-3-flash-preview',
     contents: prompt,
     config: {
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -136,7 +147,9 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
   return JSON.parse(response.text || '{}');
 };
 
+// Audit and validate new GBP profile data
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
+  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     Audit this GBP data for compliance and optimization:
@@ -152,6 +165,7 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
     model: 'gemini-3-pro-preview',
     contents: prompt,
     config: {
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -176,11 +190,13 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
   return JSON.parse(response.text || '{}');
 };
 
+// Send a chat message with full history and context
 export const sendChatMessage = async (
   history: { role: string; parts: { text: string }[] }[], 
   newMessage: string,
   context?: BusinessContext
 ) => {
+  // Create a new GoogleGenAI instance right before making an API call
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let systemInstruction = ASSISTANT_SYSTEM_INSTRUCTION;
   
