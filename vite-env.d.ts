@@ -4,20 +4,26 @@
  * This file ensures that 'process.env.API_KEY' is recognized by the TypeScript compiler.
  */
 
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      // Fixed: Changed index signature to match the expected { [key: string]: string; } 
-      // by using 'string' instead of 'string | undefined'.
-      [key: string]: string;
-      API_KEY: string;
-      NODE_ENV: string;
-    }
-  }
-
-  // Fixed: Removed the redundant 'interface Process' and 'var process' declarations.
-  // These were causing 'Subsequent property declarations' and 'Subsequent variable declarations' 
-  // errors because they conflicted with existing global definitions in the environment.
+// Augment the ProcessEnv interface to include the API_KEY requirement.
+interface ProcessEnv {
+  API_KEY: string;
+  [key: string]: string | undefined;
 }
 
-export {};
+// Augment the existing global Process interface to ensure process.env is correctly typed.
+// This avoids redeclaring the 'process' variable, which can cause block-scoped conflicts
+// or "must be of type Process" errors if a global Process type is already defined.
+interface Process {
+  env: ProcessEnv;
+}
+
+interface Window {
+  /**
+   * Use the optional modifier to match standard environment declarations for global window properties
+   * and resolve "All declarations of 'aistudio' must have identical modifiers" errors.
+   */
+  aistudio?: {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  };
+}
