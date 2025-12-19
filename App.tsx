@@ -23,9 +23,9 @@ const App: React.FC = () => {
       const saved = localStorage.getItem('gbp_context');
       const parsed = saved ? JSON.parse(saved) : null;
       return {
-        name: parsed?.name || '',
-        industry: parsed?.industry || '',
-        issueDescription: parsed?.issueDescription || ''
+        name: String(parsed?.name || ''),
+        industry: String(parsed?.industry || ''),
+        issueDescription: String(parsed?.issueDescription || '')
       };
     } catch (e) {
       return { name: '', industry: '', issueDescription: '' };
@@ -107,7 +107,7 @@ const App: React.FC = () => {
     }));
   };
 
-  const hasIdentitySet = !!(businessContext.name && businessContext.name.trim() !== '');
+  const hasIdentitySet = !!(businessContext.name && String(businessContext.name).trim() !== '');
   const hasActiveSession = hasIdentitySet && actionPlan.length > 0;
 
   const renderContent = () => {
@@ -217,7 +217,7 @@ const App: React.FC = () => {
                       className="w-full bg-white text-slate-900 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center space-x-2"
                     >
                       <span>Create</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
               </div>
@@ -263,21 +263,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      <Layout 
-        currentView={currentView} 
-        setView={setCurrentView}
-        toggleSidebar={() => {}}
-        onReset={requestReset}
-        focusMode={focusMode}
-        businessName={businessContext.name}
-      >
-        <div key={sessionKey} className="h-full">
-          {renderContent()}
-        </div>
-        {!focusMode && <AssistantSidebar context={businessContext} />}
-      </Layout>
-
+    <Layout 
+      currentView={currentView} 
+      setView={setCurrentView}
+      toggleSidebar={() => {}}
+      onReset={requestReset}
+      focusMode={focusMode}
+      businessName={businessContext.name}
+    >
+      <div key={sessionKey} className="h-full">
+        {renderContent()}
+      </div>
+      {!focusMode && <AssistantSidebar context={businessContext} />}
+      
       <ConfirmationModal 
         isOpen={showResetModal}
         onClose={() => setShowResetModal(false)}
@@ -293,7 +291,7 @@ const App: React.FC = () => {
         initialName={businessContext.name}
         initialIndustry={businessContext.industry}
       />
-    </>
+    </Layout>
   );
 };
 
