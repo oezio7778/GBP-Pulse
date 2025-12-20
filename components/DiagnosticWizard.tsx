@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { BusinessContext, FixStep } from '../types';
-import { diagnoseIssue } from '../services/geminiService';
+import { BusinessContext, FixStep } from '../types.ts';
+import { diagnoseIssue } from '../services/geminiService.ts';
 import { AlertTriangle, Search, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 
 interface Props {
