@@ -20,15 +20,6 @@
           to { opacity: 1; transform: scale(1); }
       }
       .animate-scale-in { animation: scale-in 0.2s ease-out forwards; }
-      @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-      }
-      .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-      @media print {
-        @page { margin: 1.5cm; }
-        body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      }
     </style>
     <script>
       // Process shim for browser environment - must happen BEFORE any modules load
