@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { NewProfileData, ValidationResult } from '../types';
-import { validateNewProfile } from '../services/geminiService';
+import { NewProfileData, ValidationResult } from '../types.ts';
+import { validateNewProfile } from '../services/geminiService.ts';
 import { ArrowRight, Check, MapPin, Phone, Building2, Search, AlertTriangle, Sparkles, Send, Loader2, CheckCircle2, Copy, Video, Mail } from 'lucide-react';
 
 const CreateWizard: React.FC = () => {
@@ -23,7 +22,6 @@ const CreateWizard: React.FC = () => {
 
   const handleNext = async () => {
     if (step === 3) {
-      // Perform AI Audit before Final Step
       setLoading(true);
       try {
         const result = await validateNewProfile(formData);
@@ -38,7 +36,6 @@ const CreateWizard: React.FC = () => {
         setLoading(false);
       }
     } else if (step === 4) {
-      // Simulate submission
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
@@ -51,7 +48,6 @@ const CreateWizard: React.FC = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Could add toast notification here
   };
 
   const renderStepIndicator = () => (
@@ -94,7 +90,6 @@ const CreateWizard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Data to Transfer */}
             <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="font-bold text-slate-900 mb-4 flex items-center">
                     <span>1. Copy Data to Google</span>
@@ -127,9 +122,7 @@ const CreateWizard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Right Column: Verification Advice */}
             <div className="space-y-6">
-                 {/* Likely Method */}
                 <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
                     <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
                         {validation.verificationAdvice?.method.toLowerCase().includes('video') ? (
