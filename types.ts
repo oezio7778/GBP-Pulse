@@ -1,4 +1,3 @@
-
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
   DIAGNOSTIC = 'DIAGNOSTIC',
