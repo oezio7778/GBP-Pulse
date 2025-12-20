@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage, BusinessContext } from '../types';
-import { sendChatMessage } from '../services/geminiService';
+import { ChatMessage, BusinessContext } from '../types.ts';
+import { sendChatMessage } from '../services/geminiService.ts';
 import { MessageCircle, Send, Bot, Minimize2 } from 'lucide-react';
 
 interface Props {
@@ -29,9 +29,6 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
     scrollToBottom();
   }, [messages, isOpen]);
 
-  // If context changes drastically (e.g. new diagnosis), we might want to alert the user,
-  // but for now we just silently update the context passed to the AI.
-  
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim()) return;
@@ -48,7 +45,6 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
     setIsThinking(true);
 
     try {
-      // Format history for Gemini
       const history = messages.map(m => ({
         role: m.role,
         parts: [{ text: m.text }]
@@ -95,7 +91,6 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
 
   return (
     <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
-      {/* Header */}
       <div className="bg-slate-900 p-4 flex justify-between items-center text-white">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-blue-500 rounded-lg">
@@ -115,7 +110,6 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 scrollbar-hide">
         {messages.map((msg) => (
           <div
@@ -145,7 +139,6 @@ const AssistantSidebar: React.FC<Props> = ({ context }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-100">
         <div className="relative flex items-center">
           <input
