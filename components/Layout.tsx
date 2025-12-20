@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppView } from '../types';
+import { AppView } from '../types.ts';
 import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, User, Building2 } from 'lucide-react';
 
 interface LayoutProps {
