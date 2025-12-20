@@ -114,7 +114,6 @@ const App: React.FC = () => {
                     <AlertCircle className="w-6 h-6 text-amber-600" />
                   </div>
                   <div className="flex-1">
-                    {/* Fixed: Added missing opening bracket for h3 tag */}
                     <h3 className="font-bold text-amber-900 text-lg">Identity Required</h3>
                     <p className="text-amber-700 text-sm mb-4">Set your business name and industry to unlock the AI Diagnostic tools and Content Studio.</p>
                     <button 
