@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BusinessContext } from '../types';
-import { generateGBPContent } from '../services/geminiService';
+import { BusinessContext } from '../types.ts';
+import { generateGBPContent } from '../services/geminiService.ts';
 import { 
   PenTool, MessageSquare, FileText, Copy, Check, RefreshCw, 
   Send, Flag, Maximize2, Minimize2, 
