@@ -1,6 +1,5 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types';
+import { BusinessContext, FixStep, NewProfileData, ValidationResult, StepGuide } from '../types.ts';
 
 const ASSISTANT_SYSTEM_INSTRUCTION = `You are GBP Pulse, an elite Google Business Profile diagnostic specialist.
 Your core mission is to help business owners understand the "Why" behind Google's algorithmic flags.
