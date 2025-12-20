@@ -12,9 +12,12 @@ Expertise:
 
 Tone: Professional, authoritative, and data-driven. Focus on providing clear root-cause analysis.`;
 
+// Create a safe AI instance right when needed
+const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 // Diagnose GBP issues using Gemini 3 Pro for deep reasoning
 export const diagnoseIssue = async (context: BusinessContext): Promise<{ category: string; analysis: string; steps: FixStep[] }> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAI();
   const prompt = `
     Analyze the following GBP issue:
     Business: ${context.name} (${context.industry})
@@ -56,7 +59,11 @@ export const diagnoseIssue = async (context: BusinessContext): Promise<{ categor
     }
   });
 
-  return JSON.parse(response.text || '{"category": "OTHER", "analysis": "Could not analyze.", "steps": []}');
+  try {
+    return JSON.parse(response.text || '{"category": "OTHER", "analysis": "Could not analyze.", "steps": []}');
+  } catch (e) {
+    return {"category": "OTHER", "analysis": "The analysis could not be parsed as JSON.", "steps": []};
+  }
 };
 
 // Generate high-authority content using Gemini 3 Flash
@@ -65,7 +72,7 @@ export const generateGBPContent = async (
   context: BusinessContext, 
   extraDetails: string
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAI();
   
   let systemContext = ASSISTANT_SYSTEM_INSTRUCTION;
   if (type === 'challenge') {
@@ -91,7 +98,7 @@ export const sendChatMessage = async (
   newMessage: string,
   context?: BusinessContext
 ) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAI();
   const chat = ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: { 
@@ -106,7 +113,7 @@ export const sendChatMessage = async (
 
 // Educational step guides
 export const generateStepGuide = async (stepTitle: string, stepDescription: string, context: BusinessContext): Promise<StepGuide> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Explain how to execute: ${stepTitle}. Context: ${stepDescription} for ${context.name}.`,
@@ -127,12 +134,16 @@ export const generateStepGuide = async (stepTitle: string, stepDescription: stri
     }
   });
 
-  return JSON.parse(response.text || '{}');
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    return { title: stepTitle, bigPicture: "Error parsing guide.", steps: [], pitfalls: [], proTips: [] };
+  }
 };
 
 // New Profile Validation
 export const validateNewProfile = async (data: NewProfileData): Promise<ValidationResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Audit this profile for policy risks: ${JSON.stringify(data)}`,
@@ -158,5 +169,9 @@ export const validateNewProfile = async (data: NewProfileData): Promise<Validati
     }
   });
 
-  return JSON.parse(response.text || '{}');
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    return { isValid: false, issues: ["AI analysis failed to parse."] };
+  }
 };
