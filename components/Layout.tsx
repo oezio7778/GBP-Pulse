@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppView } from '../types.ts';
-import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, Maximize2, Minimize2, User, Building2 } from 'lucide-react';
+import { AppView } from '../types';
+import { LayoutDashboard, Stethoscope, ClipboardList, PenTool, Menu, Activity, RotateCcw, PlusCircle, MapPin, User, Building2 } from 'lucide-react';
 
 interface LayoutProps {
   currentView: AppView;
@@ -25,7 +25,6 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-      {/* Sidebar - Hidden in Focus Mode */}
       <aside className={`bg-slate-900 text-white flex-col shadow-xl z-20 transition-all duration-300 ease-in-out ${focusMode ? 'hidden w-0' : 'w-64 hidden md:flex'}`}>
         <div className="p-6 flex items-center space-x-3 border-b border-slate-800">
           <div className="p-2 bg-blue-600 rounded-lg">
@@ -67,7 +66,6 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
             </button>
           )}
 
-          {/* User / Business Profile Section */}
           <div className="bg-slate-800 rounded-xl p-4 flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
                {businessName ? (
@@ -89,9 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, toggleS
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300">
-        {/* Mobile Header - Hidden in Focus Mode unless mobile */}
         {!focusMode && (
           <header className="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
             <div className="flex items-center space-x-2">
