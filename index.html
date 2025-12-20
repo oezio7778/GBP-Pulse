@@ -31,9 +31,10 @@
       }
     </style>
     <script>
-      if (typeof window.process === 'undefined') {
-        window.process = { env: { NODE_ENV: 'development' } };
-      }
+      // Process shim for browser environment - must happen BEFORE any modules load
+      window.process = window.process || { env: {} };
+      window.process.env = window.process.env || {};
+      window.process.env.NODE_ENV = window.process.env.NODE_ENV || 'development';
     </script>
     <script type="importmap">
 {
